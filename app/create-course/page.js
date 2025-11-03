@@ -23,7 +23,8 @@ export default function CreateCourse() {
     duration: '',
     chapterCount: '',
     includeVideos: false,
-    includeQuiz: false
+    includeQuiz: false,
+    preferredLanguage: 'auto' // Default language for video content
   });
 
   const categories = [
@@ -70,7 +71,8 @@ export default function CreateCourse() {
           duration: courseData.duration,
           chapterCount: courseData.chapterCount,
           includeVideos: courseData.includeVideos,
-          includeQuiz: courseData.includeQuiz
+          includeQuiz: courseData.includeQuiz,
+          preferredLanguage: courseData.preferredLanguage
         }),
       });
 
@@ -106,6 +108,7 @@ export default function CreateCourse() {
           duration: courseData.duration,
           chapterCount: Array.isArray(generatedCourse.chapters) ? generatedCourse.chapters.length : 5,
           includeVideos: courseData.includeVideos,
+          preferredLanguage: courseData.preferredLanguage,
           topic: courseData.topic,
           generatedChapters: generatedCourse.chapters || [],
           quizzes: generatedCourse.quizzes
@@ -728,10 +731,10 @@ export default function CreateCourse() {
                 </motion.label>
               </div>
               
-              {/* Video inclusion info */}
+              {/* Video inclusion info with language preference */}
               {courseData.includeVideos && (
                 <motion.div 
-                  className="mt-6 p-4 bg-white/5 backdrop-blur-sm rounded-xl border border-white/10"
+                  className="mt-6 p-4 bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 space-y-4"
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
                   exit={{ opacity: 0, height: 0 }}
@@ -742,8 +745,38 @@ export default function CreateCourse() {
                     <div>
                       <p className="text-sm font-medium">Smart Video Integration Enabled</p>
                       <p className="text-xs text-white/60 mt-1">
-                        Our AI will automatically find and embed relevant YouTube videos for each chapter based on the course content.
+                        Our AI will automatically find and embed relevant YouTube videos for each chapter with bilingual support.
                       </p>
+                    </div>
+                  </div>
+                  
+                  {/* Language Preference Selection */}
+                  <div className="flex items-center justify-between pt-3 border-t border-white/10">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm text-white/80">Preferred Language:</span>
+                    </div>
+                    <div className="flex space-x-2">
+                      {[
+                        { value: 'auto', label: 'Auto', flag: '🌐' },
+                        { value: 'en', label: 'English', flag: '🇺🇸' },
+                        { value: 'hi', label: 'हिंदी', flag: '🇮🇳' }
+                      ].map((lang) => (
+                        <motion.button
+                          key={lang.value}
+                          type="button"
+                          onClick={() => updateCourseData('preferredLanguage', lang.value)}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 flex items-center space-x-1 ${
+                            courseData.preferredLanguage === lang.value
+                              ? 'bg-red-500/20 text-red-300 border border-red-400/30'
+                              : 'bg-white/10 text-white/70 hover:bg-white/15 border border-white/20'
+                          }`}
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                        >
+                          <span>{lang.flag}</span>
+                          <span>{lang.label}</span>
+                        </motion.button>
+                      ))}
                     </div>
                   </div>
                 </motion.div>

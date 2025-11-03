@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AuthGuard from '@/components/AuthGuard';
-import YouTubeEmbed from '@/components/YouTubeEmbed';
+import BilingualYouTubeEmbed from '@/components/BilingualYouTubeEmbed';
 
 export default function CourseLayout() {
   const { id } = useParams();
@@ -376,16 +376,29 @@ export default function CourseLayout() {
                           )}
                         </div>
 
-                        {/* Chapter Video */}
+                        {/* Chapter Video with Bilingual Support */}
                         {chapter.videoUrl && course.includeVideos && (
                           <div className="ml-11 mb-4">
-                            <YouTubeEmbed
-                              url={chapter.videoUrl}
-                              title={`${chapter.title} - Video Tutorial`}
-                              autoPlay={false}
-                              showControls={true}
-                              className="max-w-2xl"
-                            />
+                            <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
+                              <div className="flex items-center gap-2 mb-3">
+                                <Play className="w-4 h-4 text-blue-600" />
+                                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                  Video Tutorial
+                                </span>
+                                <span className="text-xs text-gray-500 bg-gray-200 dark:bg-gray-700 px-2 py-1 rounded">
+                                  AI-Generated Content
+                                </span>
+                              </div>
+                              <BilingualYouTubeEmbed
+                                url={chapter.videoUrl}
+                                title={`${chapter.title} - Video Tutorial`}
+                                autoPlay={false}
+                                showControls={true}
+                                className="max-w-2xl"
+                                // Integration point: Pass course language preference if available
+                                defaultLanguage={course.preferredLanguage || null}
+                              />
+                            </div>
                           </div>
                         )}
 
