@@ -17,6 +17,7 @@ export default function CourseLayout() {
   const router = useRouter();
   const [isEditing, setIsEditing] = useState({});
   const [isGenerating, setIsGenerating] = useState(false);
+  const [theme, setTheme] = useState('dark');
   const [course, setCourse] = useState({
     title: 'JavaScript Fundamentals for Beginners',
     description: 'A comprehensive introduction to JavaScript programming language covering basic concepts, syntax, and practical examples.',
@@ -117,6 +118,29 @@ export default function CourseLayout() {
     setIsEditing(prev => ({ ...prev, [`chapter_${chapterId}_${field}`]: false }));
   };
 
+  useEffect(() => {
+    try {
+      const stored = window.localStorage.getItem('theme');
+      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const initial = stored || (prefersDark ? 'dark' : 'light');
+      setTheme(initial);
+      document.documentElement.classList.toggle('dark', initial === 'dark');
+    } catch {
+      document.documentElement.classList.add('dark');
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    setTheme(prev => {
+      const next = prev === 'dark' ? 'light' : 'dark';
+      document.documentElement.classList.toggle('dark', next === 'dark');
+      try {
+        window.localStorage.setItem('theme', next);
+      } catch {}
+      return next;
+    });
+  };
+
   const generateContent = async () => {
     setIsGenerating(true);
     
@@ -177,9 +201,9 @@ export default function CourseLayout() {
 
   return (
     <AuthGuard>
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         {/* Header */}
-        <div className="bg-white border-b border-gray-200">
+        <div className="bg-white border-b border-gray-200 dark:bg-gray-800 dark:border-gray-700">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
@@ -192,23 +216,35 @@ export default function CourseLayout() {
                   <span>Back to Dashboard</span>
                 </Button>
                 <div className="h-6 w-px bg-gray-300" />
-                <h1 className="text-xl font-semibold text-gray-900">Course Layout</h1>
+                <h1 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Course Layout</h1>
               </div>
-              <Button
-                variant="purple"
-                onClick={generateContent}
-                disabled={isGenerating}
-                className="flex items-center space-x-2"
-              >
-                {isGenerating ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Zap className="w-4 h-4" />
-                )}
-                <span>
-                  {isGenerating ? 'Generating Content...' : 'Generate Course Content'}
-                </span>
-              </Button>
+              <div className="flex items-center space-x-3">
+                <button
+                  aria-label="Toggle dark mode"
+                  onClick={toggleTheme}
+                  className="relative w-16 h-9 rounded-full bg-gray-200 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 transition-colors duration-300"
+                  title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+                >
+                  <span className={`absolute top-1 left-1 w-7 h-7 rounded-full bg-white dark:bg-indigo-400 shadow transition-all duration-300 ${theme === 'dark' ? 'translate-x-7' : ''}`}></span>
+                  <span className="absolute left-2 top-1.5 text-yellow-500 text-sm">☀️</span>
+                  <span className="absolute right-2 top-1.5 text-indigo-200 text-sm">🌙</span>
+                </button>
+                <Button
+                  variant="purple"
+                  onClick={generateContent}
+                  disabled={isGenerating}
+                  className="flex items-center space-x-2"
+                >
+                  {isGenerating ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Zap className="w-4 h-4" />
+                  )}
+                  <span>
+                    {isGenerating ? 'Generating Content...' : 'Generate Course Content'}
+                  </span>
+                </Button>
+              </div>
             </div>
           </div>
         </div>
@@ -221,7 +257,7 @@ export default function CourseLayout() {
                 {/* Thumbnail */}
                 <div className="lg:col-span-1">
                   <div className="relative">
-                    <div className="w-full h-48 bg-gray-200 rounded-xl flex items-center justify-center">
+                    <div className="w-full h-48 bg-gray-200 dark:bg-gray-700 rounded-xl flex items-center justify-center">
                       <div className="text-center">
                         <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
                         <p className="text-sm text-gray-500">Course Thumbnail</p>
@@ -241,7 +277,7 @@ export default function CourseLayout() {
                 <div className="lg:col-span-2 space-y-6">
                   {/* Title */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Course Title</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Course Title</label>
                     {isEditing.title ? (
                       <EditableField
                         value={course.title}
@@ -251,7 +287,7 @@ export default function CourseLayout() {
                       />
                     ) : (
                       <div className="flex items-center space-x-2">
-                        <h2 className="text-xl font-bold text-gray-900">{course.title}</h2>
+                        <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">{course.title}</h2>
                         <Button
                           variant="ghost"
                           size="sm"
@@ -266,7 +302,7 @@ export default function CourseLayout() {
 
                   {/* Description */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Description</label>
                     {isEditing.description ? (
                       <EditableField
                         value={course.description}
@@ -275,7 +311,7 @@ export default function CourseLayout() {
                       />
                     ) : (
                       <div className="flex items-start space-x-2">
-                        <p className="text-gray-600 flex-1">{course.description}</p>
+                        <p className="text-gray-600 dark:text-gray-400 flex-1">{course.description}</p>
                         <Button
                           variant="ghost"
                           size="sm"
@@ -290,21 +326,21 @@ export default function CourseLayout() {
 
                   {/* Course Info Grid */}
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="text-center p-3 bg-gray-50 rounded-lg">
+                    <div className="text-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                       <BookOpen className="w-5 h-5 text-purple-600 mx-auto mb-1" />
-                      <p className="text-sm text-gray-600">{course.category}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-300">{course.category}</p>
                     </div>
-                    <div className="text-center p-3 bg-gray-50 rounded-lg">
+                    <div className="text-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                       <Zap className="w-5 h-5 text-purple-600 mx-auto mb-1" />
-                      <p className="text-sm text-gray-600">{course.difficulty}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-300">{course.difficulty}</p>
                     </div>
-                    <div className="text-center p-3 bg-gray-50 rounded-lg">
+                    <div className="text-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                       <Clock className="w-5 h-5 text-purple-600 mx-auto mb-1" />
-                      <p className="text-sm text-gray-600">{course.duration}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-300">{course.duration}</p>
                     </div>
-                    <div className="text-center p-3 bg-gray-50 rounded-lg">
+                    <div className="text-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                       <BookOpen className="w-5 h-5 text-purple-600 mx-auto mb-1" />
-                      <p className="text-sm text-gray-600">{course.chapters} Chapters</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-300">{course.chapters} Chapters</p>
                     </div>
                   </div>
                 </div>
@@ -314,7 +350,7 @@ export default function CourseLayout() {
 
           {/* Chapters List */}
           <div className="space-y-4">
-            <h3 className="text-2xl font-semibold text-gray-900 mb-6">Course Chapters</h3>
+            <h3 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-6">Course Chapters</h3>
             
             {course.chaptersList.map((chapter, index) => (
               <motion.div
@@ -343,7 +379,7 @@ export default function CourseLayout() {
                               />
                             ) : (
                               <div className="flex items-center space-x-2">
-                                <h4 className="text-lg font-semibold text-gray-900">{chapter.title}</h4>
+                                <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{chapter.title}</h4>
                                 <Button
                                   variant="ghost"
                                   size="sm"
@@ -357,7 +393,7 @@ export default function CourseLayout() {
                           </div>
 
                           {/* Duration */}
-                          <div className="flex items-center space-x-1 text-gray-500">
+                          <div className="flex items-center space-x-1 text-gray-500 dark:text-gray-400">
                             <Clock className="w-4 h-4" />
                             <span className="text-sm">{chapter.duration}</span>
                           </div>
@@ -373,7 +409,7 @@ export default function CourseLayout() {
                             />
                           ) : (
                             <div className="flex items-start space-x-2">
-                              <p className="text-gray-600 flex-1">{chapter.description}</p>
+                              <p className="text-gray-600 dark:text-gray-400 flex-1">{chapter.description}</p>
                               <Button
                                 variant="ghost"
                                 size="sm"
@@ -414,7 +450,7 @@ export default function CourseLayout() {
                         {/* Chapter Content */}
                         {chapter.content && (
                           <div className="ml-11 mb-6">
-                            <div className="bg-gray-50 rounded-lg p-6">
+                            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6">
                               <div 
                                 className="prose prose-sm max-w-none text-gray-700 leading-relaxed"
                                 dangerouslySetInnerHTML={{

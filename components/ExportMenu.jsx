@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Download, FileText, File, Code, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { exportToPDF, exportToMarkdown, exportToJSON } from '@/lib/exportUtils';
+import { toast } from 'sonner';
 
 export default function ExportMenu({ courseData, size = 'sm' }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -13,22 +14,29 @@ export default function ExportMenu({ courseData, size = 'sm' }) {
   const handleExport = async (exportType) => {
     setIsExporting(true);
     try {
+      let exportName = '';
       switch (exportType) {
         case 'pdf':
+          exportName = 'PDF';
           exportToPDF(courseData);
+          toast.success(`Course exported as PDF! Opening print dialog...`);
           break;
         case 'markdown':
+          exportName = 'Markdown';
           exportToMarkdown(courseData);
+          toast.success(`Course exported as Markdown file!`);
           break;
         case 'json':
+          exportName = 'JSON';
           exportToJSON(courseData);
+          toast.success(`Course exported as JSON file!`);
           break;
         default:
           throw new Error('Unknown export type');
       }
     } catch (error) {
       console.error('Export error:', error);
-      alert('Failed to export course. Please try again.');
+      toast.error('Failed to export course. Please try again.');
     } finally {
       setIsExporting(false);
       setIsOpen(false);
@@ -41,7 +49,7 @@ export default function ExportMenu({ courseData, size = 'sm' }) {
       label: 'PDF Document',
       description: 'Print-ready format',
       icon: FileText,
-      color: 'text-red-600',
+      color: 'text-red-400',
       bgColor: 'bg-red-50 hover:bg-red-100'
     },
     {

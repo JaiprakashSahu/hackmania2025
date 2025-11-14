@@ -8,9 +8,9 @@ import { Button } from '@/components/ui/button';
 export default function LoadingModal({ isOpen, onOpenChange, onCancel, onBackground }) {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md border-0 bg-gradient-to-br from-purple-50 to-blue-50">
+      <DialogContent className="sm:max-w-md rounded-2xl border border-white/15 bg-white/10 dark:bg-white/10 backdrop-blur-xl shadow-2xl">
         <DialogHeader>
-          <DialogTitle className="text-center text-xl font-bold text-gray-900">
+          <DialogTitle className="text-center text-2xl font-bold text-gray-900 dark:text-white drop-shadow-sm">
             AI is creating your course
           </DialogTitle>
         </DialogHeader>

@@ -65,7 +65,7 @@ async function generateCourseWithAI(topic, category, difficulty, duration, chapt
 
   try {
     // Create the enhanced prompt for Gemini AI Course Builder
-    const prompt = `You are an AI Course Builder assistant for "MindCourse". Generate a complete educational course outline.
+    const prompt = `You are an AI Course Builder assistant for "IntelliCourse". Generate a complete educational course outline.
 
 🎓 COURSE TOPIC: ${topic}
 📚 CATEGORY: ${category || 'General'}
