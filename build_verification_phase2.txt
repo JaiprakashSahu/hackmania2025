@@ -1,0 +1,239 @@
+
+> mindcourse@0.1.0 build
+> next build
+
+   ▲ Next.js 15.5.2
+   - Environments: .env.local
+   - Experiments (use with caution):
+     ✓ externalDir
+
+   Creating an optimized production build ...
+ ⚠ Compiled with warnings in 11.3s
+
+./app/api/generate/chain/route.js
+Attempted import error: 'modules' is not exported from '@/lib/db' (imported as 'modules').
+
+Import trace for requested module:
+./app/api/generate/chain/route.js
+
+./app/api/generate/chain/route.js
+Attempted import error: 'modules' is not exported from '@/lib/db' (imported as 'modules').
+
+Import trace for requested module:
+./app/api/generate/chain/route.js
+
+./app/api/generate/chain/route.js
+Attempted import error: 'modules' is not exported from '@/lib/db' (imported as 'modules').
+
+Import trace for requested module:
+./app/api/generate/chain/route.js
+
+./app/api/generate/from-source/route.js
+Attempted import error: 'pdf-parse' does not contain a default export (imported as 'pdfParse').
+
+Import trace for requested module:
+./app/api/generate/from-source/route.js
+
+./app/api/save-quiz-progress/route.js
+Attempted import error: 'auth' is not exported from '@clerk/nextjs' (imported as 'auth').
+
+Import trace for requested module:
+./app/api/save-quiz-progress/route.js
+
+./app/api/save-quiz-progress/route.js
+Attempted import error: 'auth' is not exported from '@clerk/nextjs' (imported as 'auth').
+
+Import trace for requested module:
+./app/api/save-quiz-progress/route.js
+
+./lib/ocr/pdf.js
+Module not found: Package path ./lib/pdf-parse.js is not exported from package C:\Users\jaipr\Desktop\Group26\mindcourse\node_modules\pdf-parse (see exports field in C:\Users\jaipr\Desktop\Group26\mindcourse\node_modules\pdf-parse\package.json)
+
+Import trace for requested module:
+./lib/ocr/pdf.js
+./lib/ocr/index.js
+./app/api/file-to-course/route.js
+
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (176kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
+ ✓ Compiled successfully in 15.9s
+   Linting and checking validity of types ...
+   Collecting page data ...
+⚠️ REDIS_URL not found, using in-memory mock for development
+🔌 Initializing PostgreSQL connection pool...
+🔌 Initializing PostgreSQL connection pool...
+🔌 Initializing PostgreSQL connection pool...
+🔌 Initializing PostgreSQL connection pool...
+   Provider: Supabase
+   Provider: Supabase
+   SSL: Enabled
+   Max connections: 10
+   Provider: Supabase
+   SSL: Enabled
+   Max connections: 10
+🔌 Initializing PostgreSQL connection pool...
+   SSL: Enabled
+   Max connections: 10
+🔌 Initializing PostgreSQL connection pool...
+   Provider: Supabase
+   SSL: Enabled
+   Max connections: 10
+   Provider: Supabase
+   SSL: Enabled
+   Max connections: 10
+   Provider: Supabase
+   SSL: Enabled
+   Max connections: 10
+🔌 Initializing PostgreSQL connection pool...
+🔌 Initializing PostgreSQL connection pool...
+   Provider: Supabase
+   SSL: Enabled
+   Max connections: 10
+   Provider: Supabase
+   SSL: Enabled
+   Max connections: 10
+🔌 Initializing PostgreSQL connection pool...
+   Provider: Supabase
+   SSL: Enabled
+   Max connections: 10
+⚠️ REDIS_URL not found, using in-memory mock for development
+🔌 Initializing PostgreSQL connection pool...
+   Provider: Supabase
+   SSL: Enabled
+   Max connections: 10
+✅ PostgreSQL connection successful
+✅ PostgreSQL connection successful
+✅ PostgreSQL connection successful
+✅ PostgreSQL connection successful
+✅ PostgreSQL connection successful
+✅ PostgreSQL connection successful
+✅ PostgreSQL connection successful
+✅ PostgreSQL connection successful
+✅ PostgreSQL connection successful
+✅ PostgreSQL connection successful
+   Generating static pages (0/85) ...
+🔌 Initializing PostgreSQL connection pool...
+   Provider: Supabase
+   SSL: Enabled
+   Max connections: 10
+⚠️ REDIS_URL not found, using in-memory mock for development
+🔌 Initializing PostgreSQL connection pool...
+   Provider: Supabase
+   SSL: Enabled
+   Max connections: 10
+⚠️ REDIS_URL not found, using in-memory mock for development
+🔌 Initializing PostgreSQL connection pool...
+   Provider: Supabase
+   SSL: Enabled
+   Max connections: 10
+   Generating static pages (21/85) 
+🔌 Initializing PostgreSQL connection pool...
+   Provider: Supabase
+   SSL: Enabled
+   Max connections: 10
+   Generating static pages (42/85) 
+✅ PostgreSQL connection successful
+   Generating static pages (63/85) 
+✅ PostgreSQL connection successful
+✅ PostgreSQL connection successful
+ ✓ Generating static pages (85/85)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                 Size  First Load JS
+┌ ○ /                                     3.3 kB         108 kB
+├ ○ /_not-found                             1 kB         103 kB
+├ ○ /ai-course-generator                 7.31 kB         183 kB
+├ ○ /analytics                           2.44 kB         132 kB
+├ ƒ /api/activity/log                      250 B         102 kB
+├ ƒ /api/ai-course-generator               250 B         102 kB
+├ ƒ /api/analytics                         250 B         102 kB
+├ ƒ /api/analytics/overview                250 B         102 kB
+├ ƒ /api/assistant/chat                    250 B         102 kB
+├ ƒ /api/chat/tutor                        250 B         102 kB
+├ ƒ /api/check-categories                  250 B         102 kB
+├ ƒ /api/courses                           250 B         102 kB
+├ ƒ /api/courses/[id]                      250 B         102 kB
+├ ƒ /api/courses/generate                  250 B         102 kB
+├ ƒ /api/courses/structured                250 B         102 kB
+├ ƒ /api/dashboard                         250 B         102 kB
+├ ƒ /api/debug-course                      250 B         102 kB
+├ ƒ /api/debug-quiz                        250 B         102 kB
+├ ƒ /api/debug/env                         250 B         102 kB
+├ ƒ /api/enhanced-course-generator         250 B         102 kB
+├ ƒ /api/export-course                     250 B         102 kB
+├ ƒ /api/export-enhanced-course            250 B         102 kB
+├ ƒ /api/file-to-course                    250 B         102 kB
+├ ƒ /api/fix-thumbnails                    250 B         102 kB
+├ ƒ /api/generate-course                   250 B         102 kB
+├ ƒ /api/generate-course-quizzes           250 B         102 kB
+├ ƒ /api/generate-quiz                     250 B         102 kB
+├ ƒ /api/generate-structured-quiz          250 B         102 kB
+├ ƒ /api/generate/ai                       250 B         102 kB
+├ ƒ /api/generate/chain                    250 B         102 kB
+├ ƒ /api/generate/from-source              250 B         102 kB
+├ ƒ /api/graph                             250 B         102 kB
+├ ƒ /api/ingest                            250 B         102 kB
+├ ƒ /api/intellicourse-ai                  250 B         102 kB
+├ ƒ /api/library                           250 B         102 kB
+├ ƒ /api/migrate-schema                    250 B         102 kB
+├ ƒ /api/notes                             250 B         102 kB
+├ ƒ /api/progress                          250 B         102 kB
+├ ƒ /api/progress/complete                 250 B         102 kB
+├ ƒ /api/progress/get                      250 B         102 kB
+├ ƒ /api/quiz/submit                       250 B         102 kB
+├ ƒ /api/save-quiz-progress                403 B         137 kB
+├ ƒ /api/settings/appearance               250 B         102 kB
+├ ƒ /api/settings/delete-account           250 B         102 kB
+├ ƒ /api/settings/export                   250 B         102 kB
+├ ƒ /api/settings/notifications            250 B         102 kB
+├ ƒ /api/settings/privacy                  250 B         102 kB
+├ ƒ /api/settings/profile                  250 B         102 kB
+├ ƒ /api/test-thumbnail                    250 B         102 kB
+├ ƒ /api/url-to-course                     250 B         102 kB
+├ ƒ /api/verify-thumbnails                 250 B         102 kB
+├ ƒ /api/youtube                           250 B         102 kB
+├ ƒ /api/youtube/validate                  250 B         102 kB
+├ ○ /assistant                           3.02 kB         105 kB
+├ ƒ /course/[id]                         20.6 kB         202 kB
+├ ○ /courses                              4.2 kB         116 kB
+├ ○ /create-course                       11.9 kB         226 kB
+├ ƒ /create-course/[id]                   8.4 kB         188 kB
+├ ○ /create/ai                           6.55 kB         145 kB
+├ ○ /create/file                         4.44 kB         106 kB
+├ ƒ /dashboard                           68.9 kB         218 kB
+├ ƒ /dashboard/course/[id]                5.5 kB         182 kB
+├ ○ /debug-youtube                       5.49 kB         114 kB
+├ ○ /enhanced-course-generator           8.93 kB         158 kB
+├ ○ /examples/ai-course-demo             9.23 kB         158 kB
+├ ○ /examples/bilingual-course           4.71 kB         153 kB
+├ ○ /examples/youtube                    3.15 kB         148 kB
+├ ○ /explore                             16.4 kB         211 kB
+├ ○ /graph                                4.9 kB         110 kB
+├ ○ /library                              2.1 kB         104 kB
+├ ○ /migrate-schema                      4.75 kB         113 kB
+├ ○ /settings                            4.95 kB         135 kB
+├ ○ /show-thumbnails                       971 B         103 kB
+├ ○ /test-colors                         1.54 kB         103 kB
+├ ○ /test-course-builder                 4.45 kB         141 kB
+├ ○ /test-course-generation              5.28 kB         141 kB
+├ ○ /test-integrated-quiz                3.64 kB         182 kB
+├ ○ /test-new-content                     2.2 kB         146 kB
+├ ○ /test-quiz                           3.55 kB         112 kB
+├ ○ /test-quiz-debug                     3.56 kB         112 kB
+├ ○ /test-quiz-flow                      5.88 kB         142 kB
+├ ○ /test-structure                      2.76 kB         147 kB
+├ ○ /test-structured-quiz                4.57 kB         140 kB
+├ ○ /test-svg                            2.26 kB         104 kB
+├ ○ /test-youtube                         4.1 kB         153 kB
+└ ○ /test-youtube-simple                  5.2 kB         114 kB
++ First Load JS shared by all             102 kB
+  ├ chunks/1255-602684cd2947e796.js      45.4 kB
+  ├ chunks/4bd1b696-182b6b13bdad92e3.js  54.2 kB
+  └ other shared chunks (total)          2.02 kB
+
+
+ƒ Middleware                             81.8 kB
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

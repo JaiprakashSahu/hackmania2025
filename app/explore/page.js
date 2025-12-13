@@ -52,13 +52,13 @@ export default function Explore() {
 	const categoryStats = getCategoryStats();
 
 	return (
-		<div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 dark:from-gray-900 dark:via-slate-900 dark:to-black relative overflow-hidden">
+		<div className="min-h-screen bg-gray-50 dark:bg-black relative overflow-hidden">
 			<Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-			
+
 			{/* Hamburger Menu Button - 3 Lines */}
 			<motion.button
 				onClick={() => setSidebarOpen(!sidebarOpen)}
-				className="fixed top-5 left-5 z-30 p-3 rounded-xl bg-gradient-to-br from-purple-600 to-violet-600 backdrop-blur-xl shadow-lg hover:shadow-2xl transition-all duration-300"
+				className="fixed top-5 left-5 z-30 p-3 rounded-xl bg-purple-600 backdrop-blur-xl shadow-lg hover:shadow-2xl transition-all duration-300"
 				whileHover={{ scale: 1.1, rotate: 90 }}
 				whileTap={{ scale: 0.9 }}
 				initial={{ opacity: 0, x: -20 }}
@@ -66,15 +66,15 @@ export default function Explore() {
 				transition={{ delay: 0.2 }}
 			>
 				<div className="flex flex-col gap-1.5 w-6 h-6 items-center justify-center">
-					<motion.span 
+					<motion.span
 						className="w-full h-0.5 bg-white rounded-full"
 						animate={{ width: ["100%", "80%", "100%"] }}
 						transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
 					/>
-					<motion.span 
+					<motion.span
 						className="w-full h-0.5 bg-white rounded-full"
 					/>
-					<motion.span 
+					<motion.span
 						className="w-full h-0.5 bg-white rounded-full"
 						animate={{ width: ["100%", "80%", "100%"] }}
 						transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: 0.75 }}
@@ -86,34 +86,34 @@ export default function Explore() {
 			<div className="min-h-screen relative z-10">
 				<div className="p-8">
 					{/* Enhanced Header Section */}
-					<motion.div 
+					<motion.div
 						className="mb-8"
 						initial={{ opacity: 0, y: 30 }}
 						animate={{ opacity: 1, y: 0 }}
 						transition={{ duration: 0.6 }}
 					>
-							<div className="bg-white/95 dark:bg-black/40 backdrop-blur-xl rounded-2xl p-8 border border-gray-200 dark:border-purple-500/30 shadow-xl mb-8">
+						<div className="bg-white/95 dark:bg-black/40 backdrop-blur-xl rounded-2xl p-8 border border-gray-200 dark:border-purple-500/30 shadow-xl mb-8">
 							<motion.div
 								initial={{ opacity: 0, scale: 0.9 }}
 								animate={{ opacity: 1, scale: 1 }}
 								transition={{ delay: 0.2 }}
 							>
 								<div className="flex items-center gap-4 mb-6">
-														<motion.div 
-															className="w-16 h-16 bg-gradient-to-br from-purple-500 via-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center shadow-lg"
-															animate={{ 
-															rotate: [0, 360],
-															scale: [1, 1.05, 1]
-														}}
-															transition={{ 
-															rotate: { duration: 10, repeat: Infinity, ease: "linear" },
-															scale: { duration: 2, repeat: Infinity }
-														}}
-													>
+									<motion.div
+										className="w-16 h-16 bg-purple-600 rounded-2xl flex items-center justify-center shadow-lg"
+										animate={{
+											rotate: [0, 360],
+											scale: [1, 1.05, 1]
+										}}
+										transition={{
+											rotate: { duration: 10, repeat: Infinity, ease: "linear" },
+											scale: { duration: 2, repeat: Infinity }
+										}}
+									>
 										<Sparkles className="w-8 h-8 text-white" />
 									</motion.div>
 									<div>
-															<h1 className="text-5xl font-bold bg-gradient-to-r from-purple-600 via-blue-600 to-purple-600 bg-clip-text text-transparent">
+										<h1 className="text-5xl font-bold text-gray-900 dark:text-white">
 											Explore Courses
 										</h1>
 										<p className="text-gray-600 dark:text-gray-300 text-xl mt-2">
@@ -125,8 +125,8 @@ export default function Explore() {
 						</div>
 
 						{/* Enhanced Search and Filter Section */}
-							<motion.div 
-												className="bg-white/95 dark:bg-black/40 backdrop-blur-xl rounded-2xl p-6 border border-gray-200 dark:border-purple-500/30 shadow-xl"
+						<motion.div
+							className="bg-white/95 dark:bg-black/40 backdrop-blur-xl rounded-2xl p-6 border border-gray-200 dark:border-purple-500/30 shadow-xl"
 							initial={{ opacity: 0, y: 30 }}
 							animate={{ opacity: 1, y: 0 }}
 							transition={{ duration: 0.6, delay: 0.3 }}
@@ -134,15 +134,15 @@ export default function Explore() {
 							<div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
 								{/* Search Bar */}
 								<div className="relative flex-1 max-w-2xl">
-									<Input 
-										value={query} 
-										onChange={(e) => setQuery(e.target.value)} 
-										placeholder="Search courses by title, topic, or category..." 
+									<Input
+										value={query}
+										onChange={(e) => setQuery(e.target.value)}
+										placeholder="Search courses by title, topic, or category..."
 										className={`h-14 text-lg rounded-xl border-2 border-gray-200 dark:border-purple-500/30 bg-white dark:bg-black/30 text-gray-800 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-purple-400 focus:ring-purple-400/20 pl-12 ${selectedCategory ? 'pr-32' : 'pr-4'}`}
 									/>
 									<motion.div
 										className="absolute left-4 top-1/2 -translate-y-1/2"
-										animate={{ 
+										animate={{
 											scale: [1, 1.1, 1],
 											rotate: [0, 5, -5, 0]
 										}}
@@ -157,7 +157,7 @@ export default function Explore() {
 											animate={{ opacity: 1, scale: 1 }}
 											className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2"
 										>
-											<span className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-purple-600 to-blue-600 text-white text-sm font-semibold shadow-md">
+											<span className="px-3 py-1.5 rounded-lg bg-purple-600 text-white text-sm font-semibold shadow-md">
 												{selectedCategory}
 											</span>
 											<button
@@ -178,7 +178,7 @@ export default function Explore() {
 								>
 									<Button
 										onClick={() => setShowFilters(!showFilters)}
-										className="h-14 px-6 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border-0 flex items-center gap-3"
+										className="h-14 px-6 bg-purple-600 hover:bg-purple-700 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border-0 flex items-center gap-3"
 									>
 										<motion.div
 											animate={{ rotate: showFilters ? 180 : 0 }}
@@ -222,11 +222,10 @@ export default function Explore() {
 																			setSelectedCategory(category);
 																		}
 																	}}
-																	className={`w-full flex items-center justify-between p-3 rounded-lg transition-all duration-300 cursor-pointer ${
-																		isSelected
-																			? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg scale-105'
+																	className={`w-full flex items-center justify-between p-3 rounded-lg transition-all duration-300 cursor-pointer ${isSelected
+																			? 'bg-purple-600 text-white shadow-lg scale-105'
 																			: 'bg-purple-50 dark:bg-purple-900/30 hover:bg-purple-100 dark:hover:bg-purple-800/40 text-gray-700 dark:text-gray-200'
-																	}`}
+																		}`}
 																	whileHover={{ scale: isSelected ? 1.05 : 1.02, x: isSelected ? 0 : 5 }}
 																	whileTap={{ scale: 0.98 }}
 																>
@@ -295,41 +294,41 @@ export default function Explore() {
 					</motion.div>
 
 					{/* Enhanced Filter Tabs */}
-					<motion.div 
+					<motion.div
 						className="mb-8"
 						initial={{ opacity: 0, y: 30 }}
 						animate={{ opacity: 1, y: 0 }}
 						transition={{ duration: 0.6, delay: 0.4 }}
 					>
 						<Tabs value={filter} onValueChange={setFilter} className="w-full">
-						<div className="bg-white/95 dark:bg-black/40 backdrop-blur-xl rounded-2xl p-2 border border-gray-200 dark:border-purple-500/30 shadow-xl">
-							<TabsList className="grid w-full grid-cols-4 bg-transparent border-0">
-								<TabsTrigger 
-									value="all" 
-									className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-blue-600 data-[state=active]:text-white text-gray-700 dark:text-gray-300 rounded-xl transition-all duration-300 font-semibold"
-								>
-									All Courses
-								</TabsTrigger>
-								<TabsTrigger 
-									value="Beginner" 
-									className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-600 data-[state=active]:to-emerald-600 data-[state=active]:text-white text-gray-700 dark:text-gray-300 rounded-xl transition-all duration-300 font-semibold"
-								>
-									Beginner
-								</TabsTrigger>
-								<TabsTrigger 
-									value="Intermediate" 
-									className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-yellow-600 data-[state=active]:to-orange-600 data-[state=active]:text-white text-gray-700 dark:text-gray-300 rounded-xl transition-all duration-300 font-semibold"
-								>
-									Intermediate
-								</TabsTrigger>
-								<TabsTrigger 
-									value="Advanced" 
-									className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-400 data-[state=active]:to-pink-400 data-[state=active]:text-white text-gray-700 dark:text-gray-300 rounded-xl transition-all duration-300 font-semibold"
-								>
-									Advanced
-								</TabsTrigger>
-							</TabsList>
-						</div>
+							<div className="bg-white/95 dark:bg-black/40 backdrop-blur-xl rounded-2xl p-2 border border-gray-200 dark:border-purple-500/30 shadow-xl">
+								<TabsList className="grid w-full grid-cols-4 bg-transparent border-0">
+									<TabsTrigger
+										value="all"
+										className="data-[state=active]:bg-purple-600 data-[state=active]:text-white text-gray-700 dark:text-gray-300 rounded-xl transition-all duration-300 font-semibold"
+									>
+										All Courses
+									</TabsTrigger>
+									<TabsTrigger
+										value="Beginner"
+										className="data-[state=active]:bg-green-600 data-[state=active]:text-white text-gray-700 dark:text-gray-300 rounded-xl transition-all duration-300 font-semibold"
+									>
+										Beginner
+									</TabsTrigger>
+									<TabsTrigger
+										value="Intermediate"
+										className="data-[state=active]:bg-yellow-600 data-[state=active]:text-white text-gray-700 dark:text-gray-300 rounded-xl transition-all duration-300 font-semibold"
+									>
+										Intermediate
+									</TabsTrigger>
+									<TabsTrigger
+										value="Advanced"
+										className="data-[state=active]:bg-red-400 data-[state=active]:text-white text-gray-700 dark:text-gray-300 rounded-xl transition-all duration-300 font-semibold"
+									>
+										Advanced
+									</TabsTrigger>
+								</TabsList>
+							</div>
 							<TabsContent value="all" />
 							<TabsContent value="Beginner" />
 							<TabsContent value="Intermediate" />
@@ -338,16 +337,16 @@ export default function Explore() {
 					</motion.div>
 
 					{/* Enhanced Course Grid */}
-					<motion.div 
+					<motion.div
 						initial={{ opacity: 0, y: 30 }}
 						animate={{ opacity: 1, y: 0 }}
 						transition={{ duration: 0.6, delay: 0.5 }}
 					>
 						{loading ? (
 							<div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-								{[1,2,3,4,5,6].map((i) => (
-									<motion.div 
-										key={i} 
+								{[1, 2, 3, 4, 5, 6].map((i) => (
+									<motion.div
+										key={i}
 										className="h-80 rounded-2xl bg-white dark:bg-black/40 border border-gray-200 dark:border-purple-500/30 animate-pulse shadow-md"
 										initial={{ opacity: 0, scale: 0.9 }}
 										animate={{ opacity: 1, scale: 1 }}
@@ -356,19 +355,19 @@ export default function Explore() {
 								))}
 							</div>
 						) : filtered.length === 0 ? (
-							<motion.div 
+							<motion.div
 								className="py-16 text-center bg-white/95 dark:bg-black/40 backdrop-blur-xl rounded-2xl border border-gray-200 dark:border-purple-500/30 shadow-xl"
 								initial={{ opacity: 0, scale: 0.9 }}
 								animate={{ opacity: 1, scale: 1 }}
 								transition={{ delay: 0.8 }}
 							>
-								<motion.div 
-									className="mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-violet-600 shadow-lg"
-									animate={{ 
+								<motion.div
+									className="mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-purple-600 shadow-lg"
+									animate={{
 										rotate: [0, 360],
 										scale: [1, 1.1, 1]
 									}}
-									transition={{ 
+									transition={{
 										rotate: { duration: 10, repeat: Infinity, ease: "linear" },
 										scale: { duration: 2, repeat: Infinity }
 									}}
@@ -382,14 +381,14 @@ export default function Explore() {
 								{query && (
 									<Button
 										onClick={() => setQuery('')}
-										className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+										className="bg-purple-600 hover:bg-purple-700 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
 									>
 										Clear Search
 									</Button>
 								)}
 							</motion.div>
 						) : (
-							<motion.div 
+							<motion.div
 								className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3"
 								initial={{ opacity: 0 }}
 								animate={{ opacity: 1 }}
@@ -405,8 +404,8 @@ export default function Explore() {
 											transition={{ delay: index * 0.1 }}
 											whileHover={{ y: -8, scale: 1.02 }}
 										>
-											<CourseCard 
-												course={course} 
+											<CourseCard
+												course={course}
 												className="bg-black/20 backdrop-blur-xl border border-white/10 hover:border-purple-400/50 transition-all duration-500 hover:shadow-2xl hover:shadow-purple-500/20"
 											/>
 										</motion.div>

@@ -2,13 +2,13 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  Brain, 
-  BookOpen, 
-  Video, 
-  Download, 
-  CheckCircle, 
-  Lightbulb, 
+import {
+  Brain,
+  BookOpen,
+  Video,
+  Download,
+  CheckCircle,
+  Lightbulb,
   FileText,
   Play,
   Languages,
@@ -189,15 +189,15 @@ export default function AICourseDemo() {
   const currentCourse = mockCourseData[selectedLevel];
 
   const levelInfo = {
-    'Beginner': { icon: '🌱', color: 'from-green-500 to-emerald-500', description: 'Simple explanations, basic concepts' },
-    'Intermediate': { icon: '🚀', color: 'from-blue-500 to-cyan-500', description: 'Technical details, practical applications' },
-    'Advanced': { icon: '🎯', color: 'from-purple-500 to-pink-500', description: 'Deep concepts, professional terminology' }
+    'Beginner': { icon: '🌱', color: 'bg-green-500', description: 'Simple explanations, basic concepts' },
+    'Intermediate': { icon: '🚀', color: 'bg-blue-500', description: 'Technical details, practical applications' },
+    'Advanced': { icon: '🎯', color: 'bg-purple-500', description: 'Deep concepts, professional terminology' }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="max-w-6xl mx-auto p-6 space-y-8">
-        
+
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -206,19 +206,19 @@ export default function AICourseDemo() {
         >
           <div className="flex items-center justify-center gap-3">
             <Brain className="w-10 h-10 text-purple-600" />
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+            <h1 className="text-4xl font-bold text-purple-600 dark:text-purple-400">
               AI Course Generator Demo
             </h1>
           </div>
           <p className="text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
-            Experience how our AI generates comprehensive courses with level-based content depth, 
+            Experience how our AI generates comprehensive courses with level-based content depth,
             structured modules, bilingual videos, and exportable notes.
           </p>
         </motion.div>
 
         {/* Level Selector */}
         <Card className="border-2 border-purple-200 dark:border-purple-800">
-          <CardHeader className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20">
+          <CardHeader className="bg-purple-50 dark:bg-purple-900/20">
             <CardTitle className="flex items-center gap-2 text-purple-900 dark:text-purple-100">
               <Target className="w-5 h-5" />
               Select Difficulty Level
@@ -234,11 +234,10 @@ export default function AICourseDemo() {
                 >
                   <div
                     onClick={() => setSelectedLevel(level)}
-                    className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${
-                      selectedLevel === level
+                    className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${selectedLevel === level
                         ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
                         : 'border-gray-200 dark:border-gray-700 hover:border-purple-300'
-                    }`}
+                      }`}
                   >
                     <div className="flex items-center gap-3 mb-2">
                       <span className="text-2xl">{info.icon}</span>
@@ -263,10 +262,10 @@ export default function AICourseDemo() {
           animate={{ opacity: 1, y: 0 }}
           className="space-y-6"
         >
-          
+
           {/* Course Overview */}
           <Card className="border-2 border-green-200 dark:border-green-800">
-            <CardHeader className="bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20">
+            <CardHeader className="bg-green-50 dark:bg-green-900/20">
               <div className="flex items-center justify-between">
                 <div>
                   <CardTitle className="text-2xl text-green-900 dark:text-green-100">
@@ -312,7 +311,7 @@ export default function AICourseDemo() {
               <BookOpen className="w-6 h-6" />
               Course Modules
             </h2>
-            
+
             {currentCourse.modules.map((module, index) => (
               <motion.div
                 key={module.id}
@@ -322,10 +321,10 @@ export default function AICourseDemo() {
               >
                 <Card className="border border-gray-200 dark:border-gray-700">
                   <CardContent className="p-6 space-y-6">
-                    
+
                     {/* Module Header */}
                     <div className="flex items-start gap-4">
-                      <div className={`w-10 h-10 bg-gradient-to-br ${levelInfo[selectedLevel].color} text-white rounded-full flex items-center justify-center font-bold`}>
+                      <div className={`w-10 h-10 ${levelInfo[selectedLevel].color} text-white rounded-full flex items-center justify-center font-bold`}>
                         {index + 1}
                       </div>
                       <div className="flex-1">
@@ -403,7 +402,7 @@ export default function AICourseDemo() {
 
           {/* Features Showcase */}
           <Card className="border-2 border-blue-200 dark:border-blue-800">
-            <CardHeader className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20">
+            <CardHeader className="bg-blue-50 dark:bg-blue-900/20">
               <CardTitle className="text-blue-900 dark:text-blue-100 flex items-center gap-2">
                 <Sparkles className="w-5 h-5" />
                 AI Course Generator Features
@@ -420,7 +419,7 @@ export default function AICourseDemo() {
                     Level-based content depth with Gemini AI
                   </p>
                 </div>
-                
+
                 <div className="text-center space-y-2">
                   <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center mx-auto">
                     <Video className="w-6 h-6 text-blue-600" />
@@ -430,7 +429,7 @@ export default function AICourseDemo() {
                     Hindi/English audio toggle with YouTube API
                   </p>
                 </div>
-                
+
                 <div className="text-center space-y-2">
                   <div className="w-12 h-12 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center mx-auto">
                     <FileText className="w-6 h-6 text-green-600" />
@@ -440,7 +439,7 @@ export default function AICourseDemo() {
                     Key points, explanations, and examples
                   </p>
                 </div>
-                
+
                 <div className="text-center space-y-2">
                   <div className="w-12 h-12 bg-orange-100 dark:bg-orange-900/20 rounded-full flex items-center justify-center mx-auto">
                     <Download className="w-6 h-6 text-orange-600" />

@@ -1,12 +1,13 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { courses, chapters, users } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
+import { courses, chapters, users, courseAnalytics } from '@/lib/db/schema';
+import { eq, sql } from 'drizzle-orm';
 import { auth, currentUser } from '@clerk/nextjs/server';
 import { validateYouTubeUrls, normalizeYouTubeUrls } from '@/lib/utils/youtube';
 import { generateCategoryThumbnail } from '@/lib/utils/categoryThumbnails';
+import { logCourseCreated } from '@/lib/activity-logger';
 
-// GET - Fetch user's courses
+// GET - Fetch user's courses with completion data
 export async function GET() {
   try {
     const { userId } = await auth();
@@ -33,13 +34,45 @@ export async function GET() {
       existingUsers = [created];
     }
 
+    const dbUserId = existingUsers[0].id;
+
+    // Fetch courses
     const userCourses = await db
       .select()
       .from(courses)
-      .where(eq(courses.userId, existingUsers[0].id))
+      .where(eq(courses.userId, dbUserId))
       .orderBy(courses.createdAt);
 
-    return NextResponse.json({ courses: userCourses });
+    // Fetch completion data for all courses
+    let analyticsData = [];
+    try {
+      analyticsData = await db
+        .select()
+        .from(courseAnalytics)
+        .where(eq(courseAnalytics.userId, dbUserId));
+    } catch (e) {
+      // Table might not exist yet
+    }
+
+    // Map analytics to courses
+    const analyticsMap = {};
+    analyticsData.forEach(a => {
+      analyticsMap[a.courseId] = a;
+    });
+
+    // Add completion data to courses
+    const coursesWithProgress = userCourses.map(course => {
+      const analytics = analyticsMap[course.id];
+      return {
+        ...course,
+        completedModules: analytics?.modulesCompleted || 0,
+        totalModules: analytics?.totalModules || course.chapterCount || 0,
+        progressPercentage: analytics?.progressPercentage || 0,
+        lastAccessedAt: analytics?.lastAccessedAt || null,
+      };
+    });
+
+    return NextResponse.json({ courses: coursesWithProgress });
   } catch (error) {
     console.error('Error fetching courses:', error);
     // Return empty array instead of error for better UX
@@ -98,17 +131,17 @@ export async function POST(request) {
     let processedVideoUrls = null;
     if (includeVideos && videoUrls && Array.isArray(videoUrls) && videoUrls.length > 0) {
       const { valid, invalid } = validateYouTubeUrls(videoUrls);
-      
+
       if (invalid.length > 0) {
         return NextResponse.json(
-          { 
-            error: 'Invalid YouTube URLs provided', 
-            invalidUrls: invalid 
-          }, 
+          {
+            error: 'Invalid YouTube URLs provided',
+            invalidUrls: invalid
+          },
           { status: 400 }
         );
       }
-      
+
       processedVideoUrls = normalizeYouTubeUrls(valid);
     }
 
@@ -124,11 +157,11 @@ export async function POST(request) {
       modulesCount: modules?.length || 0,
       chaptersCount: generatedChapters?.length || 0
     }, null, 2));
-    
+
     console.log(`   📚 Course Title: ${course_title || title}`);
     console.log(`   🧩 Include Quiz: ${include_quiz || includeQuiz || false}`);
     console.log(`   🎥 Include Videos: ${include_videos || includeVideos || false}`);
-    
+
     if (modules && Array.isArray(modules)) {
       const modulesWithQuiz = modules.filter(m => m.quiz && m.quiz.length > 0);
       console.log(`   📖 Modules: ${modules.length} total, ${modulesWithQuiz.length} with quizzes`);
@@ -138,7 +171,7 @@ export async function POST(request) {
     } else {
       console.log('   ⚠️ No modules data received');
     }
-    
+
     if (generatedChapters && Array.isArray(generatedChapters)) {
       const chaptersWithQuiz = generatedChapters.filter(ch => ch.quiz && ch.quiz.length > 0);
       console.log(`   📝 Chapters: ${generatedChapters.length} total, ${chaptersWithQuiz.length} with quizzes`);
@@ -147,10 +180,10 @@ export async function POST(request) {
     // Create course with new JSONB structure
     const courseTitle = course_title || title || `${topic} Course`;
     const courseCategory = category || 'General';
-    
+
     // Generate category-based thumbnail
     const thumbnail = generateCategoryThumbnail(courseCategory);
-    
+
     const [newCourse] = await db
       .insert(courses)
       .values({
@@ -170,20 +203,23 @@ export async function POST(request) {
         userDescription: description
       })
       .returning();
-      
+
     console.log(`✅ Course saved with ID: ${newCourse.id}`);
+
+    // Log COURSE_CREATED activity (after successful DB insert)
+    await logCourseCreated(userId, newCourse.id, courseTitle, 'AI');
 
     // Create chapters with enhanced structure support
     if (generatedChapters && Array.isArray(generatedChapters) && generatedChapters.length > 0) {
       const chapterData = generatedChapters.map((chapter, index) => {
         // Handle both old and new chapter formats
-        const points = Array.isArray(chapter.points) ? chapter.points : 
-                      Array.isArray(chapter.objectives) ? chapter.objectives :
-                      Array.isArray(chapter.content) ? chapter.content : [];
-        
+        const points = Array.isArray(chapter.points) ? chapter.points :
+          Array.isArray(chapter.objectives) ? chapter.objectives :
+            Array.isArray(chapter.content) ? chapter.content : [];
+
         const contentText = points.join('\n');
         const urls = Array.isArray(chapter.videoUrls) && chapter.videoUrls.length > 0 ? chapter.videoUrls : null;
-        
+
         // Enhanced chapter data with new fields
         return {
           courseId: newCourse.id,
@@ -207,7 +243,7 @@ export async function POST(request) {
             console.log(`   📝 ${ch.title}: ${ch.quiz.length} questions`);
           });
         }
-        
+
         await db.insert(chapters).values(chapterData);
         console.log(`✅ Successfully saved ${chapterData.length} chapters to database`);
       }

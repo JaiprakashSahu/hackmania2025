@@ -1,223 +1,217 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import {
-  TrendingUp,
-  Clock,
-  Target,
-  Award,
-  BookOpen,
-  CheckCircle2,
-  BarChart3
-} from 'lucide-react';
-import { CircularProgress } from './ProgressIndicator';
 
 export default function AnalyticsDashboard() {
   const [analytics, setAnalytics] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-
+  const [error, setError] = useState(null);
   useEffect(() => {
+    const fetchAnalytics = async () => {
+      try {
+        const res = await fetch("/api/analytics/overview", { cache: "no-store" });
+        if (!res.ok) {
+          throw new Error("Failed to load analytics");
+        }
+        const data = await res.json();
+        setAnalytics(data || null);
+      } catch (err) {
+        console.error("Error fetching analytics:", err);
+        setError(err.message || "Unable to load analytics");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
     fetchAnalytics();
   }, []);
 
-  const fetchAnalytics = async () => {
-    try {
-      const response = await fetch('/api/analytics?type=overview');
-      if (response.ok) {
-        const data = await response.json();
-        setAnalytics(data);
-      }
-    } catch (error) {
-      console.error('Error fetching analytics:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500"></div>
+      <div className="min-h-screen bg-[#0f0f17] flex items-center justify-center">
+        <div className="h-8 w-8 rounded-full border-2 border-white/20 border-t-transparent animate-spin" />
       </div>
     );
   }
 
-  if (!analytics?.overview) {
-    return null;
+  if (error) {
+    return (
+      <div className="min-h-screen bg-[#0f0f17] flex items-center justify-center px-4">
+        <div className="bg-[#1c1c29] border border-white/5 shadow-[0_6px_30px_rgba(0,0,0,0.20)] rounded-xl p-6 max-w-md w-full">
+          <h1 className="text-base font-semibold text-white mb-2">Analytics unavailable</h1>
+          <p className="text-sm text-gray-400">We couldn't load your analytics right now.</p>
+          <p className="mt-2 text-xs text-gray-500 break-words">{error}</p>
+        </div>
+      </div>
+    );
   }
 
-  const { overview } = analytics;
+  const overview = analytics?.overview ?? analytics ?? {};
 
-  const stats = [
-    {
-      label: 'Total Courses',
-      value: overview.totalCourses,
-      icon: BookOpen,
-      color: 'from-blue-500 to-cyan-500',
-      bgColor: 'bg-blue-500/10',
-      borderColor: 'border-blue-500/30'
-    },
-    {
-      label: 'Completed',
-      value: overview.completedCourses,
-      icon: CheckCircle2,
-      color: 'from-green-500 to-emerald-500',
-      bgColor: 'bg-green-500/10',
-      borderColor: 'border-green-500/30'
-    },
-    {
-      label: 'In Progress',
-      value: overview.inProgressCourses,
-      icon: TrendingUp,
-      color: 'from-yellow-500 to-orange-500',
-      bgColor: 'bg-yellow-500/10',
-      borderColor: 'border-yellow-500/30'
-    },
-    {
-      label: 'Modules Done',
-      value: overview.totalModulesCompleted,
-      icon: Target,
-      color: 'from-purple-500 to-pink-500',
-      bgColor: 'bg-purple-500/10',
-      borderColor: 'border-purple-500/30'
-    },
-    {
-      label: 'Avg Quiz Score',
-      value: `${overview.averageQuizScore}%`,
-      icon: Award,
-      color: 'from-indigo-500 to-purple-500',
-      bgColor: 'bg-indigo-500/10',
-      borderColor: 'border-indigo-500/30'
-    },
-    {
-      label: 'Time Spent',
-      value: formatTime(overview.totalTimeSpent),
-      icon: Clock,
-      color: 'from-rose-500 to-red-500',
-      bgColor: 'bg-rose-500/10',
-      borderColor: 'border-rose-500/30'
-    }
-  ];
+  const totalCourses =
+    overview.totalCoursesCreated ??
+    overview.totalCourses ??
+    analytics?.totalCourses ??
+    0;
+
+  const totalModulesCompleted =
+    overview.totalModulesCompleted ??
+    overview.totalModules ??
+    analytics?.totalModulesCompleted ??
+    0;
+
+  const completionRateRaw =
+    overview.completionRate ??
+    overview.averageCompletionRate ??
+    analytics?.completionRate ??
+    0;
+
+  const completionRate =
+    typeof completionRateRaw === "number"
+      ? `${Math.round(completionRateRaw)}%`
+      : completionRateRaw || "-";
+
+  const lastActiveRaw =
+    overview.lastActiveAt ||
+    overview.lastAccessedAt ||
+    analytics?.lastActiveAt ||
+    analytics?.lastAccessedAt ||
+    null;
+
+  const lastActiveDate = lastActiveRaw
+    ? new Date(lastActiveRaw).toLocaleDateString()
+    : "-";
+
+  const categoryBreakdown =
+    analytics?.categoryDistribution || overview.categoryBreakdown || [];
+
+  const learningPattern =
+    analytics?.learningPattern ||
+    overview.learningPattern ||
+    overview.summary ||
+    null;
+
+  const recommendedTopics =
+    analytics?.recommendedTopics ||
+    overview.recommendedTopics ||
+    analytics?.nextTopics ||
+    overview.nextTopics ||
+    [];
 
   return (
-    <div className="space-y-6">
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {stats.map((stat, index) => {
-          const Icon = stat.icon;
-          return (
-            <motion.div
-              key={stat.label}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-              className={`${stat.bgColor} backdrop-blur-xl rounded-xl p-6 border ${stat.borderColor} hover:scale-105 transition-transform duration-300`}
-            >
-              <div className="flex items-center justify-between mb-4">
-                <div
-                  className={`p-3 rounded-lg bg-gradient-to-br ${stat.color}`}
-                >
-                  <Icon className="w-6 h-6 text-white" />
-                </div>
-                <div className="text-right">
-                  <div className="text-2xl font-bold text-white">{stat.value}</div>
-                </div>
-              </div>
-              <div className="text-sm text-white/70">{stat.label}</div>
-            </motion.div>
-          );
-        })}
+    <div className="min-h-screen bg-[#0f0f17]">
+      <div className="max-w-7xl mx-auto px-6 py-8 space-y-8">
+        {/* Page Header */}
+        <header className="space-y-1">
+          <h1 className="text-2xl font-semibold text-white">Analytics Overview</h1>
+          <p className="text-sm text-gray-400">
+            A focused view of your IntelliCourse learning analytics.
+          </p>
+        </header>
+
+        {/* Learning Overview */}
+        <section>
+          <div className="bg-[#1c1c29] border border-white/5 shadow-[0_6px_30px_rgba(0,0,0,0.20)] rounded-xl p-6">
+            <h2 className="text-sm font-medium text-white">Learning Overview</h2>
+            <div className="mt-4 space-y-3 text-sm text-gray-300">
+              <Row label="Total Courses Created" value={totalCourses} />
+              <Row label="Total Modules Completed" value={totalModulesCompleted} />
+              <Row label="Completion Rate" value={completionRate} />
+              <Row label="Last Active Date" value={lastActiveDate} />
+            </div>
+          </div>
+        </section>
+
+        {/* Category Breakdown & Learning Pattern / Recommendations */}
+        <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Category Breakdown */}
+          <div className="bg-[#1c1c29] border border-white/5 shadow-[0_6px_30px_rgba(0,0,0,0.20)] rounded-xl p-6">
+            <h2 className="text-sm font-medium text-white mb-3">Category Breakdown</h2>
+            {categoryBreakdown.length === 0 ? (
+              <p className="text-sm text-gray-400">
+                No category data available yet.
+              </p>
+            ) : (
+              <ul className="space-y-2 text-sm text-gray-300">
+                {categoryBreakdown.map((cat, index) => {
+                  const name = cat.name || cat.category || `Category ${index + 1}`;
+                  const courseCount =
+                    cat.totalCourses ??
+                    cat.courseCount ??
+                    cat.count ??
+                    null;
+
+                  return (
+                    <li
+                      key={`${name}-${index}`}
+                      className="flex items-center justify-between border-b border-white/5 last:border-b-0 pb-2 last:pb-0"
+                    >
+                      <span className="truncate mr-4">{name}</span>
+                      <span className="text-gray-400 text-xs">
+                        {courseCount != null ? `${courseCount} courses` : ""}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </div>
+
+          {/* Learning Pattern & Recommended Topics */}
+          <div className="space-y-6">
+            <div className="bg-[#1c1c29] border border-white/5 shadow-[0_6px_30px_rgba(0,0,0,0.20)] rounded-xl p-6">
+              <h2 className="text-sm font-medium text-white mb-3">
+                Your Learning Pattern
+              </h2>
+              {learningPattern ? (
+                <p className="text-sm text-gray-300 leading-relaxed">
+                  {learningPattern}
+                </p>
+              ) : (
+                <p className="text-sm text-gray-400">
+                  A short summary of your learning habits will appear here as
+                  you continue using IntelliCourse.
+                </p>
+              )}
+            </div>
+
+            <div className="bg-[#1c1c29] border border-white/5 shadow-[0_6px_30px_rgba(0,0,0,0.20)] rounded-xl p-6">
+              <h2 className="text-sm font-medium text-white mb-3">
+                Recommended Next Topics
+              </h2>
+              {recommendedTopics.length === 0 ? (
+                <p className="text-sm text-gray-400">
+                  As you create and complete more courses, IntelliCourse will
+                  suggest focused topics for your next steps.
+                </p>
+              ) : (
+                <ul className="space-y-2 text-sm text-gray-300">
+                  {recommendedTopics.map((topic, index) => (
+                    <li
+                      key={`${topic}-${index}`}
+                      className="border-b border-white/5 last:border-b-0 pb-2 last:pb-0"
+                    >
+                      {topic}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
+        </section>
       </div>
-
-      {/* Completion Rate Circle */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.6 }}
-        className="bg-white/5 backdrop-blur-xl rounded-xl p-6 border border-white/10"
-      >
-        <div className="flex items-center gap-2 mb-6">
-          <BarChart3 className="w-5 h-5 text-purple-400" />
-          <h3 className="text-lg font-semibold text-white">Overall Progress</h3>
-        </div>
-        <div className="flex flex-col md:flex-row items-center justify-around gap-8">
-          <div className="flex flex-col items-center">
-            <CircularProgress percentage={overview.averageCompletionRate} />
-            <p className="text-sm text-white/70 mt-4">Course Completion Rate</p>
-          </div>
-          <div className="grid grid-cols-2 gap-6 w-full md:w-auto">
-            <div className="text-center p-4 bg-white/5 rounded-lg">
-              <div className="text-3xl font-bold text-green-400">
-                {overview.completedCourses}
-              </div>
-              <div className="text-sm text-white/60 mt-1">Completed</div>
-            </div>
-            <div className="text-center p-4 bg-white/5 rounded-lg">
-              <div className="text-3xl font-bold text-yellow-400">
-                {overview.inProgressCourses}
-              </div>
-              <div className="text-sm text-white/60 mt-1">In Progress</div>
-            </div>
-            <div className="text-center p-4 bg-white/5 rounded-lg col-span-2">
-              <div className="text-3xl font-bold text-purple-400">
-                {overview.averageQuizScore}%
-              </div>
-              <div className="text-sm text-white/60 mt-1">Average Quiz Score</div>
-            </div>
-          </div>
-        </div>
-      </motion.div>
-
-      {/* Recent Activity */}
-      {analytics.recentActivity && analytics.recentActivity.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8 }}
-          className="bg-white/5 backdrop-blur-xl rounded-xl p-6 border border-white/10"
-        >
-          <h3 className="text-lg font-semibold text-white mb-4">Recent Activity</h3>
-          <div className="space-y-3">
-            {analytics.recentActivity.slice(0, 5).map((activity, index) => (
-              <div
-                key={index}
-                className="flex items-center justify-between p-3 bg-white/5 rounded-lg"
-              >
-                <div className="flex items-center gap-3">
-                  {activity.isCompleted ? (
-                    <CheckCircle2 className="w-5 h-5 text-green-400" />
-                  ) : (
-                    <Clock className="w-5 h-5 text-blue-400" />
-                  )}
-                  <div>
-                    <div className="text-sm text-white">Module {activity.moduleIndex + 1}</div>
-                    <div className="text-xs text-white/60">
-                      {new Date(activity.lastAccessedAt).toLocaleDateString()}
-                    </div>
-                  </div>
-                </div>
-                {activity.quizScore !== null && (
-                  <div className="text-sm font-semibold text-purple-400">
-                    {activity.quizScore}%
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </motion.div>
-      )}
     </div>
   );
 }
 
-function formatTime(seconds) {
-  if (!seconds) return '0m';
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
-  
-  if (hours > 0) {
-    return `${hours}h ${minutes}m`;
-  }
-  return `${minutes}m`;
+function Row({ label, value }) {
+  return (
+    <div className="flex items-center justify-between">
+      <span className="text-gray-400 text-xs sm:text-sm">{label}</span>
+      <span className="text-white text-sm font-medium ml-4 truncate">
+        {value}
+      </span>
+    </div>
+  );
 }
+

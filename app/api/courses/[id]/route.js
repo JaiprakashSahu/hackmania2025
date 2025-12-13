@@ -1,236 +1,140 @@
 import { NextResponse } from 'next/server';
+import { auth } from '@clerk/nextjs/server';
 import { db } from '@/lib/db';
-import { courses, chapters } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
-import { validateYouTubeUrls, normalizeYouTubeUrls } from '@/lib/utils/youtube';
+import { courses, chapters, users, courseAnalytics, moduleProgress, quizAttempts } from '@/lib/db/schema';
+import { eq, and } from 'drizzle-orm';
+import { logCourseView } from '@/lib/activity-logger';
 
-export async function GET(request, { params }) {
+// GET - Export a single course with all its data
+export async function GET(request, context) {
   try {
-    const { id } = await params;
-    const courseId = id;
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
-    // Set global context for mock database
-    global.mockCurrentId = courseId;
+    // Await params for Next.js 15 compatibility
+    const { id: courseId } = await context.params;
 
-    // Get course
-    const courseResult = await db
-      .select()
-      .from(courses)
-      .where(eq(courses.id, courseId))
-      .limit(1);
+    // Get user from database
+    const dbUsers = await db.select().from(users).where(eq(users.clerkId, userId)).limit(1);
+    if (dbUsers.length === 0) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
 
-    if (courseResult.length === 0) {
+    // Get the course
+    const courseData = await db.select().from(courses).where(
+      and(eq(courses.id, courseId), eq(courses.userId, dbUsers[0].id))
+    ).limit(1);
+
+    if (courseData.length === 0) {
       return NextResponse.json({ error: 'Course not found' }, { status: 404 });
     }
 
-    const course = courseResult[0];
+    const course = courseData[0];
 
-    // Get chapters for this course
-    const chaptersResult = await db
-      .select()
-      .from(chapters)
-      .where(eq(chapters.courseId, course.id))
-      .orderBy(chapters.orderIndex);
+    // Log COURSE_VIEW activity (with 30-min dedup window)
+    await logCourseView(userId, courseId, course.title);
 
-    // Handle both old and new course structures
-    const courseResponse = {
-      ...course,
-      // For backward compatibility, provide chapters from both sources
-      chapters: chaptersResult.length > 0 ? chaptersResult : 
-                (course.modules && Array.isArray(course.modules) ? 
-                 course.modules.map((module, index) => ({
-                   id: module.id || `module-${index + 1}`,
-                   title: module.title,
-                   description: module.description,
-                   content: module.description,
-                   quiz: module.quiz || [],
-                   videoUrl: module.videoUrl || null,
-                   videoUrls: module.videoUrls || [],
-                   orderIndex: index + 1
-                 })) : []),
-      // Include modules for new structure
-      modules: course.modules || [],
-      // Ensure boolean flags are properly set
-      includeQuiz: course.include_quiz || false,
-      includeVideos: course.include_videos || false
+    // Get all chapters for this course
+    const courseChapters = await db.select().from(chapters).where(eq(chapters.courseId, courseId));
+
+    // Get analytics
+    let analytics = null;
+    try {
+      const analyticsData = await db.select().from(courseAnalytics).where(
+        and(eq(courseAnalytics.courseId, courseId), eq(courseAnalytics.userId, dbUsers[0].id))
+      ).limit(1);
+      analytics = analyticsData[0] || null;
+    } catch (e) {
+      // Table might not exist
+    }
+
+    // Get module progress
+    let progress = [];
+    try {
+      progress = await db.select().from(moduleProgress).where(
+        and(eq(moduleProgress.courseId, courseId), eq(moduleProgress.userId, dbUsers[0].id))
+      );
+    } catch (e) {
+      // Table might not exist
+    }
+
+    const exportData = {
+      exportedAt: new Date().toISOString(),
+      course: {
+        ...course,
+        chapters: courseChapters,
+      },
+      analytics,
+      progress,
     };
 
-    console.log(`📖 Retrieved course: ${course.course_title || course.title}`);
-    console.log(`   📚 Modules: ${courseResponse.modules.length}`);
-    console.log(`   📝 Chapters: ${courseResponse.chapters.length}`);
-    
-    // Debug: Show video information
-    if (course.include_videos) {
-      const modulesWithVideos = courseResponse.modules.filter(m => m.videoUrls && m.videoUrls.length > 0);
-      console.log(`   🎥 Modules with videos: ${modulesWithVideos.length}`);
-      if (modulesWithVideos.length > 0) {
-        console.log(`   📹 Sample module videos:`, modulesWithVideos[0].videoUrls);
-      }
-    }
-    
-    if (course.include_quiz) {
-      const modulesWithQuiz = courseResponse.modules.filter(m => m.quiz && m.quiz.length > 0);
-      const chaptersWithQuiz = courseResponse.chapters.filter(ch => ch.quiz && ch.quiz.length > 0);
-      console.log(`   🧩 Modules with quiz: ${modulesWithQuiz.length}`);
-      console.log(`   📝 Chapters with quiz: ${chaptersWithQuiz.length}`);
-      
-      // Debug: Show sample quiz data being sent to frontend
-      if (chaptersWithQuiz.length > 0 && chaptersWithQuiz[0].quiz) {
-        console.log('📋 Sample chapter quiz data for frontend:');
-        console.log('   Chapter:', chaptersWithQuiz[0].title);
-        console.log('   Quiz length:', chaptersWithQuiz[0].quiz.length);
-        console.log('   First question:', chaptersWithQuiz[0].quiz[0]?.question || 'No question');
-      }
-    }
-
-    return NextResponse.json({
-      course: courseResponse
-    });
-
+    return NextResponse.json(exportData);
   } catch (error) {
-    console.error('Error fetching course:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch course' },
-      { status: 500 }
-    );
+    console.error('Error exporting course:', error);
+    return NextResponse.json({ error: 'Failed to export course' }, { status: 500 });
   }
 }
 
-// DELETE - Delete course and its chapters
-export async function DELETE(request, { params }) {
+// DELETE - Delete a course and all its data
+export async function DELETE(request, context) {
   try {
-    const { id } = await params;
-    const courseId = id;
-
-    // First, delete all chapters associated with this course
-    await db
-      .delete(chapters)
-      .where(eq(chapters.courseId, courseId));
-
-    // Then delete the course
-    const result = await db
-      .delete(courses)
-      .where(eq(courses.id, courseId))
-      .returning();
-
-    if (result.length === 0) {
-      return NextResponse.json({ error: 'Course not found' }, { status: 404 });
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    return NextResponse.json({
-      success: true,
-      message: 'Course deleted successfully'
-    });
+    // Await params for Next.js 15 compatibility
+    const { id: courseId } = await context.params;
 
+    // Get user from database
+    const dbUsers = await db.select().from(users).where(eq(users.clerkId, userId)).limit(1);
+    if (dbUsers.length === 0) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    // Verify the course belongs to this user
+    const courseData = await db.select().from(courses).where(
+      and(eq(courses.id, courseId), eq(courses.userId, dbUsers[0].id))
+    ).limit(1);
+
+    if (courseData.length === 0) {
+      return NextResponse.json({ error: 'Course not found or not authorized' }, { status: 404 });
+    }
+
+    // Delete in order to respect foreign key constraints
+
+    // 1. Delete quiz attempts for this course
+    try {
+      await db.delete(quizAttempts).where(eq(quizAttempts.courseId, courseId));
+    } catch (e) {
+      console.log('Quiz attempts delete skipped:', e.message);
+    }
+
+    // 2. Delete module progress for this course
+    try {
+      await db.delete(moduleProgress).where(eq(moduleProgress.courseId, courseId));
+    } catch (e) {
+      console.log('Module progress delete skipped:', e.message);
+    }
+
+    // 3. Delete course analytics
+    try {
+      await db.delete(courseAnalytics).where(eq(courseAnalytics.courseId, courseId));
+    } catch (e) {
+      console.log('Course analytics delete skipped:', e.message);
+    }
+
+    // 4. Delete chapters (should cascade, but explicit is safer)
+    await db.delete(chapters).where(eq(chapters.courseId, courseId));
+
+    // 5. Delete the course
+    await db.delete(courses).where(eq(courses.id, courseId));
+
+    return NextResponse.json({ success: true, message: 'Course deleted successfully' });
   } catch (error) {
     console.error('Error deleting course:', error);
-    return NextResponse.json(
-      { error: 'Failed to delete course' },
-      { status: 500 }
-    );
-  }
-}
-
-
-import { getAuth } from "@clerk/nextjs/server";
-import { users } from "@/lib/db/schema";
-
-// ✅ Create new course (after AI generation)
-export async function POST(request) {
-  try {
-    const { userId } = getAuth(request); // get Clerk user
-    if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const body = await request.json();
-    const {
-      title,
-      category,
-      difficulty,
-      duration,
-      description,
-      topic,
-      chapterCount,
-      includeVideos,
-      videoUrls,
-      userDescription,
-      chapters: chaptersData = [],
-    } = body;
-
-    // ✅ Step 1: Find or create user in your DB
-    let [existingUser] = await db
-      .select()
-      .from(users)
-      .where(eq(users.clerkId, userId));
-
-    if (!existingUser) {
-      const [newUser] = await db
-        .insert(users)
-        .values({
-          clerkId: userId,
-          email: "unknown@example.com", // fallback
-          firstName: "Unknown",
-          lastName: "User",
-        })
-        .returning();
-      existingUser = newUser;
-    }
-
-    // Validate and normalize video URLs if includeVideos is true
-    let processedVideoUrls = null;
-    if (includeVideos && videoUrls && Array.isArray(videoUrls) && videoUrls.length > 0) {
-      const { valid, invalid } = validateYouTubeUrls(videoUrls);
-      
-      if (invalid.length > 0) {
-        return NextResponse.json(
-          { 
-            error: 'Invalid YouTube URLs provided', 
-            invalidUrls: invalid 
-          }, 
-          { status: 400 }
-        );
-      }
-      
-      processedVideoUrls = normalizeYouTubeUrls(valid);
-    }
-
-    // ✅ Step 2: Insert the course
-    const [newCourse] = await db
-      .insert(courses)
-      .values({
-        userId: existingUser.id,
-        title,
-        description,
-        category,
-        difficulty,
-        duration,
-        chapterCount: Number(chapterCount),
-        includeVideos: !!includeVideos,
-        videoUrls: processedVideoUrls,
-        topic,
-        userDescription,
-      })
-      .returning();
-
-    // ✅ Step 3: Insert related chapters (if any)
-    if (chaptersData.length > 0) {
-      const chapterInserts = chaptersData.map((chapter, index) => ({
-        courseId: newCourse.id,
-        title: chapter.title,
-        description: chapter.description,
-        duration: "N/A",
-        content: JSON.stringify(chapter.points || []),
-        videoUrls: chapter.videoUrl ? [chapter.videoUrl] : [],
-        orderIndex: index + 1,
-      }));
-
-      await db.insert(chapters).values(chapterInserts);
-    }
-
-    return NextResponse.json({ success: true, course: newCourse });
-  } catch (error) {
-    console.error("Error creating course:", error);
-    return NextResponse.json({ error: "Failed to create course" }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to delete course' }, { status: 500 });
   }
 }

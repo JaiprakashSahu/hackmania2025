@@ -13,7 +13,7 @@ import BilingualYouTubeEmbed from '@/components/BilingualYouTubeEmbed';
  */
 export default function BilingualCourseDemo() {
   const [selectedLanguage, setSelectedLanguage] = useState('auto');
-  
+
   // Mock AI-generated course data
   const mockCourse = {
     title: 'JavaScript Fundamentals for Beginners',
@@ -52,7 +52,7 @@ export default function BilingualCourseDemo() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="max-w-6xl mx-auto p-8 space-y-8">
         {/* Header */}
         <div className="text-center space-y-4">
@@ -62,19 +62,19 @@ export default function BilingualCourseDemo() {
             className="flex items-center justify-center gap-3"
           >
             <Sparkles className="w-8 h-8 text-purple-600" />
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            <h1 className="text-4xl font-bold text-purple-600 dark:text-purple-400">
               AI-Generated Course with Bilingual Videos
             </h1>
           </motion.div>
           <p className="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-            Experience how our AI generates comprehensive courses with automatic YouTube video integration 
+            Experience how our AI generates comprehensive courses with automatic YouTube video integration
             and seamless Hindi/English language switching.
           </p>
         </div>
 
         {/* Course Overview */}
         <Card className="border-2 border-purple-200 dark:border-purple-800">
-          <CardHeader className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20">
+          <CardHeader className="bg-purple-50 dark:bg-purple-900/20">
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle className="text-2xl text-purple-900 dark:text-purple-100">
@@ -102,7 +102,7 @@ export default function BilingualCourseDemo() {
           </CardHeader>
           <CardContent className="p-6">
             {/* Global Language Preference */}
-            <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+            <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Languages className="w-5 h-5 text-blue-600" />
@@ -140,7 +140,7 @@ export default function BilingualCourseDemo() {
                 <BookOpen className="w-5 h-5" />
                 Course Chapters
               </h3>
-              
+
               {mockCourse.chapters.map((chapter, index) => (
                 <motion.div
                   key={chapter.id}
@@ -175,7 +175,7 @@ export default function BilingualCourseDemo() {
                         {/* AI-Generated Video Integration */}
                         {chapter.videoUrl && mockCourse.includeVideos && (
                           <div className="ml-11">
-                            <div className="bg-gradient-to-r from-gray-50 to-blue-50 dark:from-gray-800 dark:to-blue-900/20 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
+                            <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
                               <div className="flex items-center gap-2 mb-3">
                                 <Play className="w-4 h-4 text-blue-600" />
                                 <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -185,7 +185,7 @@ export default function BilingualCourseDemo() {
                                   Auto-Selected by AI
                                 </span>
                               </div>
-                              
+
                               {/* Integration Point: BilingualYouTubeEmbed with course preferences */}
                               <BilingualYouTubeEmbed
                                 url={chapter.videoUrl}
@@ -220,7 +220,7 @@ export default function BilingualCourseDemo() {
 
         {/* Integration Features */}
         <Card className="border-2 border-green-200 dark:border-green-800">
-          <CardHeader className="bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20">
+          <CardHeader className="bg-green-50 dark:bg-green-900/20">
             <CardTitle className="text-green-900 dark:text-green-100 flex items-center gap-2">
               <Sparkles className="w-5 h-5" />
               AI Integration Features
@@ -239,7 +239,7 @@ export default function BilingualCourseDemo() {
                   <li>• Real-time video validation and availability checking</li>
                 </ul>
               </div>
-              
+
               <div className="space-y-4">
                 <h4 className="font-semibold text-gray-900 dark:text-gray-100">
                   🌐 Bilingual Video Support
@@ -257,7 +257,7 @@ export default function BilingualCourseDemo() {
 
         {/* Technical Implementation */}
         <Card className="border-2 border-blue-200 dark:border-blue-800">
-          <CardHeader className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20">
+          <CardHeader className="bg-blue-50 dark:bg-blue-900/20">
             <CardTitle className="text-blue-900 dark:text-blue-100">
               🔧 Technical Implementation
             </CardTitle>
@@ -265,7 +265,7 @@ export default function BilingualCourseDemo() {
           <CardContent className="p-6">
             <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto">
               <pre className="text-green-400 text-sm">
-{`// Integration Points in AI Course Generation
+                {`// Integration Points in AI Course Generation
 
 // 1. Course Creation with Language Preference
 const courseData = {

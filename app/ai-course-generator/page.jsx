@@ -2,13 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  BookOpen, 
-  Brain, 
-  Download, 
-  Loader2, 
-  Play, 
-  Languages, 
+import {
+  BookOpen,
+  Brain,
+  Download,
+  Loader2,
+  Play,
+  Languages,
   ChevronDown,
   FileText,
   Video,
@@ -60,22 +60,19 @@ export default function AICourseGenerator() {
       value: 'Beginner',
       label: 'Beginner',
       description: 'Simple explanations, basic concepts, easy examples',
-      icon: '🌱',
-      color: 'from-green-500 to-emerald-500'
+      icon: '🌱'
     },
     {
       value: 'Intermediate',
-      label: 'Intermediate', 
+      label: 'Intermediate',
       description: 'Technical details, practical applications, moderate complexity',
-      icon: '🚀',
-      color: 'from-blue-500 to-cyan-500'
+      icon: '🚀'
     },
     {
       value: 'Advanced',
       label: 'Advanced',
       description: 'Deep concepts, professional terminology, complex examples',
-      icon: '🎯',
-      color: 'from-purple-500 to-pink-500'
+      icon: '🎯'
     }
   ];
 
@@ -170,9 +167,9 @@ export default function AICourseGenerator() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+    <div className="min-h-screen bg-[#0f0f17]">
       <div className="max-w-6xl mx-auto p-6 space-y-8">
-        
+
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -181,41 +178,41 @@ export default function AICourseGenerator() {
         >
           <div className="flex items-center justify-center gap-3">
             <Brain className="w-10 h-10 text-purple-600" />
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+            <h1 className="text-4xl font-bold text-white">
               AI Course Generator
             </h1>
           </div>
-          <p className="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+          <p className="text-white/50 max-w-2xl mx-auto">
             Generate comprehensive, structured courses with AI-powered content and bilingual YouTube videos
           </p>
         </motion.div>
 
         {/* User Input Form */}
-        <Card className="border-2 border-purple-200 dark:border-purple-800">
-          <CardHeader className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20">
-            <CardTitle className="flex items-center gap-2 text-purple-900 dark:text-purple-100">
+        <Card className="bg-[#1C1C29] border border-white/10 rounded-2xl shadow-[0_4px_40px_rgba(0,0,0,0.4)]">
+          <CardHeader className="bg-[#14151C] border-b border-white/10">
+            <CardTitle className="flex items-center gap-2 text-white">
               <Sparkles className="w-5 h-5" />
               Course Configuration
             </CardTitle>
           </CardHeader>
           <CardContent className="p-6 space-y-6">
-            
+
             {/* Topic Input */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label className="text-sm font-medium text-white/70">
                 Course Topic
               </label>
               <Input
                 placeholder="e.g., Machine Learning, React.js, Digital Marketing..."
                 value={formData.topic}
                 onChange={(e) => setFormData(prev => ({ ...prev, topic: e.target.value }))}
-                className="text-lg h-12"
+                className="text-lg h-12 bg-[#14151C] border border-white/10 text-white placeholder-white/30 focus:border-[#9B6BFF]"
               />
             </div>
 
             {/* Difficulty Level Selection */}
             <div className="space-y-3">
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label className="text-sm font-medium text-white/70">
                 Difficulty Level
               </label>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -227,19 +224,18 @@ export default function AICourseGenerator() {
                   >
                     <div
                       onClick={() => setFormData(prev => ({ ...prev, level: level.value }))}
-                      className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${
-                        formData.level === level.value
-                          ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
-                          : 'border-gray-200 dark:border-gray-700 hover:border-purple-300'
-                      }`}
+                      className={`p-4 rounded-xl border cursor-pointer transition-all ${formData.level === level.value
+                        ? 'border-[#9B6BFF] bg-[#9B6BFF]/20'
+                        : 'border-white/10 bg-[#14151C] hover:border-[#9B6BFF]/50'
+                        }`}
                     >
                       <div className="flex items-center gap-3 mb-2">
                         <span className="text-2xl">{level.icon}</span>
-                        <span className="font-semibold text-gray-900 dark:text-gray-100">
+                        <span className="font-semibold text-white">
                           {level.label}
                         </span>
                       </div>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                      <p className="text-sm text-white/50">
                         {level.description}
                       </p>
                     </div>
@@ -249,11 +245,11 @@ export default function AICourseGenerator() {
             </div>
 
             {/* Video Integration Options */}
-            <div className="space-y-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+            <div className="space-y-4 p-4 bg-[#14151C] border border-white/10 rounded-xl">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Video className="w-5 h-5 text-blue-600" />
-                  <span className="font-medium text-gray-900 dark:text-gray-100">
+                  <Video className="w-5 h-5 text-[#57D1FF]" />
+                  <span className="font-medium text-white">
                     Video Integration
                   </span>
                 </div>
@@ -262,19 +258,19 @@ export default function AICourseGenerator() {
                     type="checkbox"
                     checked={formData.includeVideos}
                     onChange={(e) => setFormData(prev => ({ ...prev, includeVideos: e.target.checked }))}
-                    className="w-4 h-4 text-blue-600 rounded"
+                    className="w-4 h-4 text-[#9B6BFF] rounded bg-[#14151C] border-white/10"
                   />
-                  <span className="text-sm text-gray-700 dark:text-gray-300">Include YouTube Videos</span>
+                  <span className="text-sm text-white/70">Include YouTube Videos</span>
                 </label>
               </div>
-              
+
               {formData.includeVideos && (
                 <motion.div
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
-                  className="flex items-center justify-between pt-3 border-t border-gray-200 dark:border-gray-600"
+                  className="flex items-center justify-between pt-3 border-t border-white/10"
                 >
-                  <span className="text-sm text-gray-700 dark:text-gray-300">
+                  <span className="text-sm text-white/70">
                     Default Language:
                   </span>
                   <div className="flex gap-2">
@@ -286,11 +282,10 @@ export default function AICourseGenerator() {
                       <button
                         key={lang.value}
                         onClick={() => setFormData(prev => ({ ...prev, preferredLanguage: lang.value }))}
-                        className={`px-3 py-1 rounded-lg text-xs font-medium transition-all flex items-center gap-1 ${
-                          formData.preferredLanguage === lang.value
-                            ? 'bg-blue-500 text-white'
-                            : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
-                        }`}
+                        className={`px-3 py-1 rounded-lg text-xs font-medium transition-all flex items-center gap-1 ${formData.preferredLanguage === lang.value
+                          ? 'bg-[#9B6BFF] text-white'
+                          : 'bg-[#1C1C29] text-white/70 hover:bg-[#272732]'
+                          }`}
                       >
                         <span>{lang.flag}</span>
                         <span>{lang.label}</span>
@@ -305,7 +300,7 @@ export default function AICourseGenerator() {
             <Button
               onClick={handleGenerateCourse}
               disabled={isGenerating || !formData.topic.trim()}
-              className="w-full h-12 text-lg font-semibold bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+              className="w-full h-12 text-lg font-semibold bg-[#9B6BFF] hover:bg-[#8a59ff] text-white"
             >
               {isGenerating ? (
                 <div className="flex items-center gap-2">
@@ -342,12 +337,12 @@ export default function AICourseGenerator() {
               exit={{ opacity: 0, y: -20 }}
               className="space-y-6"
             >
-              
+
               {/* Course Overview */}
-              <Card className="border-2 border-green-200 dark:border-green-800">
-                <CardHeader className="bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20">
+              <Card className="bg-[#1C1C29] border border-white/10 rounded-2xl shadow-[0_4px_40px_rgba(0,0,0,0.4)]">
+                <CardHeader className="bg-[#14151C] border-b border-white/10">
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-2xl text-green-900 dark:text-green-100">
+                    <CardTitle className="text-2xl text-white">
                       {generatedCourse.title}
                     </CardTitle>
                     <div className="flex gap-2">
@@ -380,7 +375,7 @@ export default function AICourseGenerator() {
                 </CardHeader>
                 <CardContent className="p-6">
                   <div className="space-y-4">
-                    <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+                    <div className="flex items-center gap-4 text-sm text-white/60">
                       <span className="flex items-center gap-1">
                         <Target className="w-4 h-4" />
                         Level: {formData.level}
@@ -396,7 +391,7 @@ export default function AICourseGenerator() {
                         </span>
                       )}
                     </div>
-                    <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                    <p className="text-white/70 leading-relaxed">
                       {generatedCourse.overview}
                     </p>
                   </div>
@@ -405,11 +400,11 @@ export default function AICourseGenerator() {
 
               {/* Course Modules */}
               <div className="space-y-6">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                <h2 className="text-2xl font-bold text-white flex items-center gap-2">
                   <BookOpen className="w-6 h-6" />
                   Course Modules
                 </h2>
-                
+
                 {generatedCourse.modules?.map((module, index) => (
                   <motion.div
                     key={module.id || index}
@@ -417,20 +412,20 @@ export default function AICourseGenerator() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.1 }}
                   >
-                    <Card className="border border-gray-200 dark:border-gray-700">
+                    <Card className="bg-[#1C1C29] border border-white/10">
                       <CardContent className="p-6 space-y-6">
-                        
+
                         {/* Module Header */}
                         <div className="flex items-start gap-4">
-                          <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-blue-500 text-white rounded-full flex items-center justify-center font-bold">
+                          <div className="w-10 h-10 bg-[#9B6BFF] text-white rounded-full flex items-center justify-center font-bold">
                             {index + 1}
                           </div>
                           <div className="flex-1">
-                            <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                            <h3 className="text-xl font-semibold text-white mb-2">
                               {module.title}
                             </h3>
                             {module.description && (
-                              <p className="text-gray-600 dark:text-gray-400">
+                              <p className="text-white/60">
                                 {module.description}
                               </p>
                             )}
@@ -439,15 +434,15 @@ export default function AICourseGenerator() {
 
                         {/* Key Learning Points */}
                         {module.keyPoints && module.keyPoints.length > 0 && (
-                          <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
-                            <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-3 flex items-center gap-2">
+                          <div className="bg-[#14151C] border border-white/10 rounded-xl p-4">
+                            <h4 className="font-semibold text-[#57D1FF] mb-3 flex items-center gap-2">
                               <CheckCircle className="w-4 h-4" />
                               Key Learning Points
                             </h4>
                             <ul className="space-y-2">
                               {module.keyPoints.map((point, pointIndex) => (
-                                <li key={pointIndex} className="flex items-start gap-2 text-blue-800 dark:text-blue-200">
-                                  <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 flex-shrink-0" />
+                                <li key={pointIndex} className="flex items-start gap-2 text-white/70">
+                                  <span className="w-1.5 h-1.5 bg-[#57D1FF] rounded-full mt-2 flex-shrink-0" />
                                   <span className="text-sm">{point}</span>
                                 </li>
                               ))}
@@ -457,13 +452,13 @@ export default function AICourseGenerator() {
 
                         {/* Detailed Explanation */}
                         {module.explanation && (
-                          <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-                            <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
+                          <div className="bg-[#14151C] border border-white/10 rounded-xl p-4">
+                            <h4 className="font-semibold text-white mb-3 flex items-center gap-2">
                               <FileText className="w-4 h-4" />
                               Detailed Explanation
                             </h4>
-                            <div className="prose prose-sm dark:prose-invert max-w-none">
-                              <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                            <div className="prose prose-sm prose-invert max-w-none">
+                              <p className="text-white/70 leading-relaxed">
                                 {module.explanation}
                               </p>
                             </div>
@@ -472,12 +467,12 @@ export default function AICourseGenerator() {
 
                         {/* Example/Analogy */}
                         {module.example && (
-                          <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-4">
-                            <h4 className="font-semibold text-yellow-900 dark:text-yellow-100 mb-3 flex items-center gap-2">
+                          <div className="bg-[#14151C] border border-[#9B6BFF]/30 rounded-xl p-4">
+                            <h4 className="font-semibold text-[#9B6BFF] mb-3 flex items-center gap-2">
                               <Lightbulb className="w-4 h-4" />
                               Example & Analogy
                             </h4>
-                            <p className="text-yellow-800 dark:text-yellow-200 text-sm leading-relaxed">
+                            <p className="text-white/70 text-sm leading-relaxed">
                               {module.example}
                             </p>
                           </div>
@@ -486,13 +481,13 @@ export default function AICourseGenerator() {
                         {/* YouTube Videos Integration */}
                         {formData.includeVideos && module.videos && module.videos.length > 0 && (
                           <div className="space-y-4">
-                            <h4 className="font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                            <h4 className="font-semibold text-white flex items-center gap-2">
                               <Play className="w-4 h-4" />
                               Related Videos
                             </h4>
                             <div className="grid gap-4">
                               {module.videos.map((video, videoIndex) => (
-                                <div key={videoIndex} className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+                                <div key={videoIndex} className="bg-[#14151C] border border-white/10 rounded-xl p-4">
                                   <BilingualYouTubeEmbed
                                     url={video.url}
                                     title={video.title || `${module.title} - Video ${videoIndex + 1}`}

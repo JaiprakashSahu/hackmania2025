@@ -2,13 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  BookOpen, 
-  Brain, 
-  Download, 
-  Loader2, 
-  Play, 
-  Languages, 
+import {
+  BookOpen,
+  Brain,
+  Download,
+  Loader2,
+  Play,
+  Languages,
   CheckCircle,
   XCircle,
   FileText,
@@ -88,7 +88,7 @@ export default function EnhancedCourseGenerator() {
   // Calculate course completion progress
   const calculateProgress = (results) => {
     if (!generatedCourse?.modules) return;
-    
+
     const totalQuizzes = generatedCourse.modules.length;
     const completedQuizzes = Object.keys(results).length;
     const progress = (completedQuizzes / totalQuizzes) * 100;
@@ -150,7 +150,7 @@ export default function EnhancedCourseGenerator() {
       const userAnswer = quizAnswers[`${moduleId}_${index}`];
       const isCorrect = userAnswer === question.answer;
       if (isCorrect) correctAnswers++;
-      
+
       results[`${moduleId}_${index}`] = {
         correct: isCorrect,
         userAnswer,
@@ -225,15 +225,15 @@ export default function EnhancedCourseGenerator() {
   };
 
   const difficultyLevels = [
-    { value: 'Beginner', icon: '🌱', color: 'from-green-500 to-emerald-500', description: 'Simple concepts, basic examples' },
-    { value: 'Intermediate', icon: '🚀', color: 'from-blue-500 to-cyan-500', description: 'Technical details, practical scenarios' },
-    { value: 'Advanced', icon: '🎯', color: 'from-purple-500 to-pink-500', description: 'Complex problems, professional level' }
+    { value: 'Beginner', icon: '🌱', color: 'bg-green-500', description: 'Simple concepts, basic examples' },
+    { value: 'Intermediate', icon: '🚀', color: 'bg-blue-500', description: 'Technical details, practical scenarios' },
+    { value: 'Advanced', icon: '🎯', color: 'bg-purple-500', description: 'Complex problems, professional level' }
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="max-w-6xl mx-auto p-6 space-y-8">
-        
+
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -242,7 +242,7 @@ export default function EnhancedCourseGenerator() {
         >
           <div className="flex items-center justify-center gap-3">
             <Brain className="w-10 h-10 text-purple-600" />
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+            <h1 className="text-4xl font-bold text-gray-900 dark:text-white">
               Enhanced AI Course Generator
             </h1>
           </div>
@@ -253,14 +253,14 @@ export default function EnhancedCourseGenerator() {
 
         {/* Course Configuration Form */}
         <Card className="border-2 border-purple-200 dark:border-purple-800">
-          <CardHeader className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20">
+          <CardHeader className="bg-purple-50 dark:bg-purple-900/20">
             <CardTitle className="flex items-center gap-2 text-purple-900 dark:text-purple-100">
               <Sparkles className="w-5 h-5" />
               Course Configuration
             </CardTitle>
           </CardHeader>
           <CardContent className="p-6 space-y-6">
-            
+
             {/* Topic Input */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -288,11 +288,10 @@ export default function EnhancedCourseGenerator() {
                   >
                     <div
                       onClick={() => setFormData(prev => ({ ...prev, level: level.value }))}
-                      className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${
-                        formData.level === level.value
+                      className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${formData.level === level.value
                           ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
                           : 'border-gray-200 dark:border-gray-700 hover:border-purple-300'
-                      }`}
+                        }`}
                     >
                       <div className="flex items-center gap-3 mb-2">
                         <span className="text-2xl">{level.icon}</span>
@@ -325,7 +324,7 @@ export default function EnhancedCourseGenerator() {
                   />
                 </label>
               </div>
-              
+
               <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
                 <div className="flex items-center gap-2">
                   <Brain className="w-5 h-5 text-green-600" />
@@ -346,7 +345,7 @@ export default function EnhancedCourseGenerator() {
             <Button
               onClick={handleGenerateCourse}
               disabled={isGenerating || !formData.topic.trim()}
-              className="w-full h-12 text-lg font-semibold bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+              className="w-full h-12 text-lg font-semibold bg-purple-600 hover:bg-purple-700"
             >
               {isGenerating ? (
                 <div className="flex items-center gap-2">
@@ -382,10 +381,10 @@ export default function EnhancedCourseGenerator() {
               exit={{ opacity: 0, y: -20 }}
               className="space-y-6"
             >
-              
+
               {/* Course Overview with Progress */}
               <Card className="border-2 border-green-200 dark:border-green-800">
-                <CardHeader className="bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20">
+                <CardHeader className="bg-green-50 dark:bg-green-900/20">
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
                       <CardTitle className="text-2xl text-green-900 dark:text-green-100 mb-2">
@@ -457,16 +456,16 @@ export default function EnhancedCourseGenerator() {
 }
 
 // Module Card Component
-function ModuleCard({ 
-  module, 
-  index, 
-  formData, 
-  quizAnswers, 
-  quizResults, 
-  showResults, 
-  onQuizAnswer, 
-  onCheckQuiz, 
-  onResetQuiz 
+function ModuleCard({
+  module,
+  index,
+  formData,
+  quizAnswers,
+  quizResults,
+  showResults,
+  onQuizAnswer,
+  onCheckQuiz,
+  onResetQuiz
 }) {
   const moduleResult = quizResults[module.id];
   const showResult = showResults[module.id];
@@ -479,10 +478,10 @@ function ModuleCard({
     >
       <Card className="border border-gray-200 dark:border-gray-700">
         <CardContent className="p-6 space-y-6">
-          
+
           {/* Module Header */}
           <div className="flex items-start gap-4">
-            <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-blue-500 text-white rounded-full flex items-center justify-center font-bold">
+            <div className="w-10 h-10 bg-purple-600 text-white rounded-full flex items-center justify-center font-bold">
               {index + 1}
             </div>
             <div className="flex-1">
@@ -565,7 +564,7 @@ function ModuleCard({
 
           {/* Interactive Quiz */}
           {formData.includeQuizzes && module.quiz && (
-            <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-lg p-4 border border-purple-200 dark:border-purple-800">
+            <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4 border border-purple-200 dark:border-purple-800">
               <div className="flex items-center justify-between mb-4">
                 <h4 className="font-semibold text-purple-900 dark:text-purple-100 flex items-center gap-2">
                   <Brain className="w-4 h-4" />
@@ -583,7 +582,7 @@ function ModuleCard({
                   </Button>
                 )}
               </div>
-              
+
               <div className="space-y-4">
                 {module.quiz.map((question, qIndex) => (
                   <QuizQuestion
@@ -598,7 +597,7 @@ function ModuleCard({
                   />
                 ))}
               </div>
-              
+
               {!showResult ? (
                 <Button
                   onClick={() => onCheckQuiz(module.id)}
@@ -620,8 +619,8 @@ function ModuleCard({
                     </span>
                   </div>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    {moduleResult.correctAnswers === moduleResult.total 
-                      ? "Perfect! You've mastered this module." 
+                    {moduleResult.correctAnswers === moduleResult.total
+                      ? "Perfect! You've mastered this module."
                       : "Good effort! Review the explanations and try again."}
                   </p>
                 </div>
@@ -635,41 +634,40 @@ function ModuleCard({
 }
 
 // Quiz Question Component
-function QuizQuestion({ 
-  question, 
-  questionIndex, 
-  moduleId, 
-  selectedAnswer, 
-  result, 
-  onAnswerSelect, 
-  disabled 
+function QuizQuestion({
+  question,
+  questionIndex,
+  moduleId,
+  selectedAnswer,
+  result,
+  onAnswerSelect,
+  disabled
 }) {
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border">
       <h5 className="font-medium text-gray-900 dark:text-gray-100 mb-3">
         {questionIndex + 1}. {question.question}
       </h5>
-      
+
       <div className="space-y-2">
         {question.options.map((option, optionIndex) => {
           const isSelected = selectedAnswer === option;
           const isCorrect = result && option === result.correctAnswer;
           const isWrong = result && isSelected && !result.correct;
-          
+
           return (
             <label
               key={optionIndex}
-              className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
-                disabled
+              className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${disabled
                   ? isCorrect
                     ? 'bg-green-50 border-green-200 text-green-800'
                     : isWrong
-                    ? 'bg-red-50 border-red-200 text-red-800'
-                    : 'bg-gray-50 border-gray-200'
+                      ? 'bg-red-50 border-red-200 text-red-800'
+                      : 'bg-gray-50 border-gray-200'
                   : isSelected
-                  ? 'bg-purple-50 border-purple-200'
-                  : 'hover:bg-gray-50 border-gray-200'
-              }`}
+                    ? 'bg-purple-50 border-purple-200'
+                    : 'hover:bg-gray-50 border-gray-200'
+                }`}
             >
               <input
                 type="radio"
@@ -687,7 +685,7 @@ function QuizQuestion({
           );
         })}
       </div>
-      
+
       {result && result.explanation && (
         <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200">
           <p className="text-sm text-blue-800 dark:text-blue-200">

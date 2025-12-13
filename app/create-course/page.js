@@ -31,12 +31,12 @@ export default function CreateCourse() {
   });
 
   const categories = [
-    { id: 'programming', name: 'Programming', icon: Code, color: 'from-blue-500 to-cyan-500', description: 'Learn coding and software development' },
-    { id: 'health', name: 'Health & Fitness', icon: Heart, color: 'from-red-500 to-pink-500', description: 'Wellness, nutrition, and physical health' },
-    { id: 'creative', name: 'Creative Arts', icon: Palette, color: 'from-purple-500 to-indigo-500', description: 'Design, art, and creative skills' },
-    { id: 'business', name: 'Business', icon: BookOpen, color: 'from-green-500 to-emerald-500', description: 'Entrepreneurship and business skills' },
-    { id: 'science', name: 'Science', icon: Brain, color: 'from-indigo-500 to-blue-500', description: 'Scientific concepts and research' },
-    { id: 'technology', name: 'Technology', icon: Zap, color: 'from-yellow-500 to-orange-500', description: 'Latest tech trends and innovations' }
+    { id: 'programming', name: 'Programming', icon: Code, color: 'bg-blue-500', description: 'Learn coding and software development' },
+    { id: 'health', name: 'Health & Fitness', icon: Heart, color: 'bg-red-500', description: 'Wellness, nutrition, and physical health' },
+    { id: 'creative', name: 'Creative Arts', icon: Palette, color: 'bg-purple-600', description: 'Design, art, and creative skills' },
+    { id: 'business', name: 'Business', icon: BookOpen, color: 'bg-green-500', description: 'Entrepreneurship and business skills' },
+    { id: 'science', name: 'Science', icon: Brain, color: 'bg-indigo-500', description: 'Scientific concepts and research' },
+    { id: 'technology', name: 'Technology', icon: Zap, color: 'bg-yellow-500', description: 'Latest tech trends and innovations' }
   ];
 
   const difficulties = ['Beginner', 'Intermediate', 'Advanced'];
@@ -77,13 +77,13 @@ export default function CreateCourse() {
   const handleGenerateCourse = async () => {
     setIsGenerating(true);
     setIsBackgroundGeneration(false);
-    
+
     // Create new AbortController for this request
     abortControllerRef.current = new AbortController();
-    
+
     try {
       console.log('Starting course generation with data:', courseData);
-      
+
       // Call course generation API
       const response = await fetch('/api/courses/generate', {
         method: 'POST',
@@ -114,13 +114,13 @@ export default function CreateCourse() {
 
       const responseData = await response.json();
       console.log('Generated course data:', responseData);
-      
+
       const { course: generatedCourse, warning } = responseData;
 
       if (!generatedCourse) {
         throw new Error('No course data received from API');
       }
-      
+
       // Show warning if chapters were auto-limited
       if (warning && warning.type === 'auto_limited') {
         console.warn(`⚠️ ${warning.message}`);
@@ -179,30 +179,30 @@ export default function CreateCourse() {
 
       const { course: savedCourse } = await saveResponse.json();
       console.log('Saved course:', savedCourse);
-      
+
       // Show success message and redirect
       toast.success('Course generated successfully!');
-      
+
       // Redirect to the course page
       setTimeout(() => {
         router.push(`/course/${savedCourse.id}`);
       }, 500);
-      
+
     } catch (error) {
       // Check if error is due to abort
       if (error.name === 'AbortError') {
         console.log('Course generation was cancelled');
         return;
       }
-      
+
       console.error('Error generating course:', error);
       // Show a more user-friendly error message
-      const errorMessage = error.message.includes('Failed to generate course') 
+      const errorMessage = error.message.includes('Failed to generate course')
         ? 'Course generation failed. Please try again with different parameters.'
         : error.message.includes('Failed to save course')
-        ? 'Course was generated but failed to save. Please try again.'
-        : 'An unexpected error occurred. Please try again.';
-      
+          ? 'Course was generated but failed to save. Please try again.'
+          : 'An unexpected error occurred. Please try again.';
+
       toast.error(errorMessage);
     } finally {
       setIsGenerating(false);
@@ -230,29 +230,29 @@ export default function CreateCourse() {
       transition={{ duration: 0.5 }}
       className="space-y-6"
     >
-      <motion.div 
+      <motion.div
         className="text-center mb-6 sm:mb-8 bg-white/10 dark:bg-white/10 backdrop-blur-xl rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 border border-white/15 shadow-2xl"
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
       >
-        <motion.div 
-          className="w-20 h-20 bg-gradient-to-br from-purple-500 via-blue-500 to-cyan-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg shadow-purple-500/50"
-          animate={{ 
+        <motion.div
+          className="w-20 h-20 bg-purple-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg shadow-purple-500/50"
+          animate={{
             rotate: [0, 360],
             scale: [1, 1.05, 1]
           }}
-          transition={{ 
+          transition={{
             rotate: { duration: 10, repeat: Infinity, ease: "linear" },
             scale: { duration: 2, repeat: Infinity }
           }}
         >
           <Sparkles className="w-10 h-10 text-white" />
         </motion.div>
-        <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-600 via-blue-600 to-purple-600 bg-clip-text text-transparent mb-2 sm:mb-3">Choose Course Category</h2>
+        <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold  mb-2 sm:mb-3">Choose Course Category</h2>
         <p className="text-gray-700 dark:text-white/70 text-base sm:text-lg md:text-xl">Select the category that best fits your course topic</p>
       </motion.div>
-      
+
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
         {categories.map((category, index) => (
           <motion.div
@@ -264,19 +264,18 @@ export default function CreateCourse() {
             whileTap={{ scale: 0.95 }}
           >
             <Card
-              className={`cursor-pointer transition-all duration-500 hover:shadow-2xl bg-white dark:bg-black/20 backdrop-blur-xl ${
-                courseData.category === category.id 
-                  ? 'ring-2 ring-purple-400 shadow-lg shadow-purple-500/30' 
-                  : 'border border-gray-200 dark:border-white/10 hover:border-purple-400/50'
-              }`}
+              className={`cursor-pointer transition-all duration-500 hover:shadow-2xl bg-white dark:bg-black/20 backdrop-blur-xl ${courseData.category === category.id
+                ? 'ring-2 ring-purple-400 shadow-lg shadow-purple-500/30'
+                : 'border border-gray-200 dark:border-white/10 hover:border-purple-400/50'
+                }`}
               onClick={() => updateCourseData('category', category.id)}
             >
               <CardContent className="p-4 sm:p-6 md:p-8 text-center relative overflow-hidden">
                 {/* Subtle overlay */}
-                <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 dark:from-purple-500/10 to-blue-500/5 dark:to-blue-500/10 opacity-0 hover:opacity-100 transition-opacity duration-500"></div>
-                
-                <motion.div 
-                  className={`icon-wrapper w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 bg-gradient-to-br ${category.color} rounded-xl sm:rounded-2xl flex items-center justify-center mx-auto mb-4 sm:mb-6 shadow-lg relative z-10`}
+                <div className="absolute inset-0 bg-purple-500/5 dark:bg-purple-500/10 opacity-0 hover:opacity-100 transition-opacity duration-500"></div>
+
+                <motion.div
+                  className={`icon-wrapper w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 ${category.color} rounded-xl sm:rounded-2xl flex items-center justify-center mx-auto mb-4 sm:mb-6 shadow-lg relative z-10`}
                   animate={courseData.category === category.id ? {
                     boxShadow: ['0 0 20px rgba(168,85,247,0.5)', '0 0 30px rgba(168,85,247,0.8)', '0 0 20px rgba(168,85,247,0.5)'],
                     scale: [1, 1.1, 1]
@@ -302,15 +301,15 @@ export default function CreateCourse() {
       exit={{ opacity: 0, x: -20 }}
       className="space-y-6"
     >
-      <motion.div 
+      <motion.div
         className="text-center mb-6 sm:mb-8 bg-white/10 dark:bg-white/10 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-10 border border-white/15 shadow-2xl relative overflow-hidden"
         initial={{ opacity: 0, y: 30, scale: 0.95 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ delay: 0.2, duration: 0.6, ease: "easeOut" }}
       >
         {/* Animated background gradient */}
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/5 dark:from-blue-600/10 via-purple-600/5 dark:via-purple-600/10 to-cyan-600/5 dark:to-cyan-600/10 animate-pulse"></div>
-        
+        <div className="absolute inset-0 bg-blue-600/5 dark:bg-blue-600/10 animate-pulse"></div>
+
         {/* Floating particles effect */}
         <div className="absolute inset-0 overflow-hidden">
           {[...Array(8)].map((_, i) => (
@@ -334,10 +333,10 @@ export default function CreateCourse() {
             />
           ))}
         </div>
-        
-        <motion.div 
-          className="w-16 h-16 sm:w-20 sm:w-20 md:w-24 md:h-24 bg-gradient-to-br from-blue-400 via-purple-500 to-cyan-600 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6 shadow-2xl shadow-blue-500/50 relative z-10"
-          animate={{ 
+
+        <motion.div
+          className="w-16 h-16 sm:w-20 sm:w-20 md:w-24 md:h-24 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6 shadow-2xl shadow-blue-500/50 relative z-10"
+          animate={{
             rotate: [0, 360],
             scale: [1, 1.1, 1],
             boxShadow: [
@@ -346,7 +345,7 @@ export default function CreateCourse() {
               "0 0 30px rgba(59, 130, 246, 0.5)"
             ]
           }}
-          transition={{ 
+          transition={{
             rotate: { duration: 10, repeat: Infinity, ease: "linear" },
             scale: { duration: 3, repeat: Infinity },
             boxShadow: { duration: 3, repeat: Infinity }
@@ -359,17 +358,17 @@ export default function CreateCourse() {
             <BookOpen className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 text-white drop-shadow-lg" />
           </motion.div>
         </motion.div>
-        
-        <motion.h2 
-          className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-purple-600 via-blue-600 to-purple-600 bg-clip-text text-transparent mb-3 sm:mb-4 relative z-10"
+
+        <motion.h2
+          className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold  mb-3 sm:mb-4 relative z-10"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5, duration: 0.8 }}
         >
           Course Details
         </motion.h2>
-        
-        <motion.p 
+
+        <motion.p
           className="text-gray-700 dark:text-white/80 text-base sm:text-lg md:text-xl relative z-10"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -378,9 +377,9 @@ export default function CreateCourse() {
           Tell us about your course topic and description
         </motion.p>
       </motion.div>
-      
+
       <div className="space-y-6 sm:space-y-8 max-w-3xl mx-auto">
-        <motion.div 
+        <motion.div
           className="bg-white/10 dark:bg-white/10 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 border border-white/15 shadow-2xl relative overflow-hidden group hover:border-white/25 transition-all duration-500"
           initial={{ opacity: 0, x: -50, scale: 0.9 }}
           animate={{ opacity: 1, x: 0, scale: 1 }}
@@ -388,24 +387,24 @@ export default function CreateCourse() {
           whileHover={{ scale: 1.02, y: -5 }}
         >
           {/* Animated background gradient */}
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-600/5 via-purple-600/5 to-cyan-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-          
+          <div className="absolute inset-0 bg-blue-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+
           {/* Floating icon */}
-          <motion.div 
-            className="absolute top-4 right-4 w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center opacity-20"
-            animate={{ 
+          <motion.div
+            className="absolute top-4 right-4 w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center opacity-20"
+            animate={{
               rotate: [0, 360],
               scale: [1, 1.2, 1]
             }}
-            transition={{ 
+            transition={{
               rotate: { duration: 8, repeat: Infinity, ease: "linear" },
               scale: { duration: 2, repeat: Infinity }
             }}
           >
             <span className="text-white text-xs">📝</span>
           </motion.div>
-          
-          <motion.label 
+
+          <motion.label
             className="block text-base sm:text-lg md:text-xl font-bold mb-3 sm:mb-4 bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent relative z-10"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -413,22 +412,22 @@ export default function CreateCourse() {
           >
             Course Topic *
           </motion.label>
-          
+
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.6, duration: 0.6 }}
           >
-          <Input
-            placeholder="e.g., JavaScript Fundamentals"
-            value={courseData.topic}
-            onChange={(e) => updateCourseData('topic', e.target.value)}
+            <Input
+              placeholder="e.g., JavaScript Fundamentals"
+              value={courseData.topic}
+              onChange={(e) => updateCourseData('topic', e.target.value)}
               className="w-full h-12 sm:h-14 md:h-16 text-sm sm:text-base md:text-lg border border-white/20 bg-white/10 dark:bg-white/10 backdrop-blur-lg text-white placeholder:text-white/60 focus:border-white/40 focus:ring-white/20 hover:border-white/30 transition-all duration-300 shadow-lg rounded-xl sm:rounded-2xl relative z-10"
             />
           </motion.div>
         </motion.div>
-        
-        <motion.div 
+
+        <motion.div
           className="bg-white/10 dark:bg-white/10 backdrop-blur-xl rounded-3xl p-8 border border-white/15 shadow-2xl relative overflow-hidden group hover:border-white/25 transition-all duration-500"
           initial={{ opacity: 0, x: 50, scale: 0.9 }}
           animate={{ opacity: 1, x: 0, scale: 1 }}
@@ -436,24 +435,24 @@ export default function CreateCourse() {
           whileHover={{ scale: 1.02, y: -5 }}
         >
           {/* Animated background gradient */}
-          <div className="absolute inset-0 bg-gradient-to-r from-purple-600/5 via-cyan-600/5 to-blue-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-          
+          <div className="absolute inset-0 bg-purple-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+
           {/* Floating icon */}
-          <motion.div 
-            className="absolute top-4 right-4 w-8 h-8 bg-gradient-to-br from-purple-500 to-cyan-500 rounded-full flex items-center justify-center opacity-20"
-            animate={{ 
+          <motion.div
+            className="absolute top-4 right-4 w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center opacity-20"
+            animate={{
               rotate: [0, -360],
               scale: [1, 1.2, 1]
             }}
-            transition={{ 
+            transition={{
               rotate: { duration: 10, repeat: Infinity, ease: "linear" },
               scale: { duration: 3, repeat: Infinity }
             }}
           >
             <span className="text-white text-xs">📄</span>
           </motion.div>
-          
-          <motion.label 
+
+          <motion.label
             className="block text-xl font-bold mb-4 bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent relative z-10"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -461,18 +460,18 @@ export default function CreateCourse() {
           >
             Description (Optional)
           </motion.label>
-          
+
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.7, duration: 0.6 }}
           >
-          <textarea
-            placeholder="Describe what students will learn..."
-            value={courseData.description}
-            onChange={(e) => updateCourseData('description', e.target.value)}
+            <textarea
+              placeholder="Describe what students will learn..."
+              value={courseData.description}
+              onChange={(e) => updateCourseData('description', e.target.value)}
               className="w-full h-32 sm:h-40 md:h-48 px-4 sm:px-5 md:px-6 py-4 sm:py-5 md:py-6 border border-white/20 bg-white/10 dark:bg-white/10 backdrop-blur-lg text-white placeholder:text-white/60 focus:border-white/40 focus:ring-white/20 hover:border-white/30 transition-all duration-300 shadow-lg resize-none text-sm sm:text-base md:text-lg leading-relaxed rounded-xl sm:rounded-2xl relative z-10"
-          />
+            />
           </motion.div>
         </motion.div>
       </div>
@@ -486,15 +485,15 @@ export default function CreateCourse() {
       exit={{ opacity: 0, x: -20 }}
       className="space-y-6"
     >
-      <motion.div 
+      <motion.div
         className="text-center mb-8 bg-white/10 dark:bg-white/10 backdrop-blur-xl rounded-3xl p-10 border border-white/15 shadow-2xl relative overflow-hidden"
         initial={{ opacity: 0, y: 30, scale: 0.95 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ delay: 0.2, duration: 0.6, ease: "easeOut" }}
       >
         {/* Animated background gradient */}
-        <div className="absolute inset-0 bg-gradient-to-r from-purple-600/10 via-blue-600/10 to-cyan-600/10 animate-pulse"></div>
-        
+        <div className="absolute inset-0 bg-purple-600/10 animate-pulse"></div>
+
         {/* Floating particles effect */}
         <div className="absolute inset-0 overflow-hidden">
           {[...Array(6)].map((_, i) => (
@@ -518,10 +517,10 @@ export default function CreateCourse() {
             />
           ))}
         </div>
-        
-        <motion.div 
-          className="w-24 h-24 bg-gradient-to-br from-green-400 via-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-green-500/50 relative z-10"
-          animate={{ 
+
+        <motion.div
+          className="w-24 h-24 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-green-500/50 relative z-10"
+          animate={{
             rotate: [0, 360],
             scale: [1, 1.1, 1],
             boxShadow: [
@@ -530,7 +529,7 @@ export default function CreateCourse() {
               "0 0 30px rgba(34, 197, 94, 0.5)"
             ]
           }}
-          transition={{ 
+          transition={{
             rotate: { duration: 8, repeat: Infinity, ease: "linear" },
             scale: { duration: 3, repeat: Infinity },
             boxShadow: { duration: 3, repeat: Infinity }
@@ -543,17 +542,17 @@ export default function CreateCourse() {
             <Zap className="w-12 h-12 text-white drop-shadow-lg" />
           </motion.div>
         </motion.div>
-        
-        <motion.h2 
-          className="text-5xl font-bold bg-gradient-to-r from-purple-600 via-blue-600 to-purple-600 bg-clip-text text-transparent mb-4 relative z-10"
+
+        <motion.h2
+          className="text-5xl font-bold  mb-4 relative z-10"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5, duration: 0.8 }}
         >
           Course Options
         </motion.h2>
-        
-        <motion.p 
+
+        <motion.p
           className="text-gray-700 dark:text-white/80 text-xl relative z-10"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -562,10 +561,10 @@ export default function CreateCourse() {
           Customize your course settings with precision
         </motion.p>
       </motion.div>
-      
+
       <div className="space-y-8 max-w-3xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <motion.div 
+          <motion.div
             className="bg-white/10 dark:bg-white/10 backdrop-blur-xl rounded-3xl p-8 border border-white/15 shadow-2xl relative overflow-hidden group hover:border-white/25 transition-all duration-500"
             initial={{ opacity: 0, x: -50, scale: 0.9 }}
             animate={{ opacity: 1, x: 0, scale: 1 }}
@@ -573,24 +572,24 @@ export default function CreateCourse() {
             whileHover={{ scale: 1.02, y: -5 }}
           >
             {/* Animated background gradient */}
-            <div className="absolute inset-0 bg-gradient-to-r from-purple-600/5 via-blue-600/5 to-cyan-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-            
+            <div className="absolute inset-0 bg-purple-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+
             {/* Floating icon */}
-            <motion.div 
-              className="absolute top-4 right-4 w-8 h-8 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center opacity-20"
-              animate={{ 
+            <motion.div
+              className="absolute top-4 right-4 w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center opacity-20"
+              animate={{
                 rotate: [0, 360],
                 scale: [1, 1.2, 1]
               }}
-              transition={{ 
+              transition={{
                 rotate: { duration: 6, repeat: Infinity, ease: "linear" },
                 scale: { duration: 2, repeat: Infinity }
               }}
             >
               <span className="text-white text-xs">⚡</span>
             </motion.div>
-            
-            <motion.label 
+
+            <motion.label
               className="block text-xl font-bold mb-4 bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent relative z-10"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -598,7 +597,7 @@ export default function CreateCourse() {
             >
               Difficulty Level
             </motion.label>
-            
+
             <Select value={courseData.difficulty} onValueChange={(value) => updateCourseData('difficulty', value)}>
               <SelectTrigger className="h-18 text-lg rounded-2xl border border-white/20 bg-white/10 dark:bg-white/10 backdrop-blur-lg text-white placeholder:text-white/60 focus:border-white/40 focus:ring-white/20 hover:border-white/30 transition-all duration-300 shadow-xl hover:shadow-purple-500/30 [&>span]:text-white relative z-10 group">
                 <SelectValue placeholder="Select difficulty" />
@@ -614,9 +613,9 @@ export default function CreateCourse() {
               </SelectTrigger>
               <SelectContent className="bg-white/10 dark:bg-white/10 backdrop-blur-xl border border-white/20 text-white rounded-2xl shadow-2xl p-2">
                 {difficulties.map((diff, index) => (
-                  <SelectItem 
-                    key={diff} 
-                    value={diff} 
+                  <SelectItem
+                    key={diff}
+                    value={diff}
                     className="text-white hover:bg-white/10 focus:bg-white/10 transition-all duration-200 rounded-xl m-1 p-3 cursor-pointer"
                   >
                     <span className="font-medium">{diff}</span>
@@ -625,10 +624,10 @@ export default function CreateCourse() {
               </SelectContent>
             </Select>
           </motion.div>
-          
+
           {/* Course Duration - Only shown when videos are included */}
           {courseData.includeVideos && (
-            <motion.div 
+            <motion.div
               className="bg-white/10 dark:bg-white/10 backdrop-blur-xl rounded-3xl p-8 border border-white/15 shadow-2xl relative overflow-hidden group hover:border-white/25 transition-all duration-500"
               initial={{ opacity: 0, y: 50, scale: 0.9 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -637,24 +636,24 @@ export default function CreateCourse() {
               whileHover={{ scale: 1.02, y: -5 }}
             >
               {/* Animated background gradient */}
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-600/5 via-cyan-600/5 to-purple-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-              
+              <div className="absolute inset-0 bg-blue-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+
               {/* Floating icon */}
-              <motion.div 
-                className="absolute top-4 right-4 w-8 h-8 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center opacity-20"
-                animate={{ 
+              <motion.div
+                className="absolute top-4 right-4 w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center opacity-20"
+                animate={{
                   rotate: [0, -360],
                   scale: [1, 1.2, 1]
                 }}
-                transition={{ 
+                transition={{
                   rotate: { duration: 8, repeat: Infinity, ease: "linear" },
                   scale: { duration: 3, repeat: Infinity }
                 }}
               >
                 <span className="text-white text-xs">⏱️</span>
               </motion.div>
-              
-              <motion.label 
+
+              <motion.label
                 className="block text-xl font-bold mb-4 bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent relative z-10"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -662,11 +661,11 @@ export default function CreateCourse() {
               >
                 Course Duration (Video Watch Time)
               </motion.label>
-              
+
               <p className="text-gray-700 dark:text-white/60 text-sm mb-4 relative z-10">
                 📹 Estimated time including video content
               </p>
-              
+
               <Select value={courseData.duration} onValueChange={(value) => updateCourseData('duration', value)}>
                 <SelectTrigger className="h-18 text-lg rounded-2xl border border-white/20 bg-white/10 dark:bg-white/10 backdrop-blur-lg text-white placeholder:text-white/60 focus:border-white/40 focus:ring-white/20 hover:border-white/30 transition-all duration-300 shadow-xl hover:shadow-purple-500/30 [&>span]:text-white relative z-10 group">
                   <SelectValue placeholder="Select duration" />
@@ -682,9 +681,9 @@ export default function CreateCourse() {
                 </SelectTrigger>
                 <SelectContent className="bg-white/10 dark:bg-white/10 backdrop-blur-xl border border-white/20 text-white rounded-2xl shadow-2xl p-2">
                   {durations.map((dur, index) => (
-                    <SelectItem 
-                      key={dur} 
-                      value={dur} 
+                    <SelectItem
+                      key={dur}
+                      value={dur}
                       className="text-white hover:bg-white/10 focus:bg-white/10 transition-all duration-200 rounded-xl m-1 p-3 cursor-pointer"
                     >
                       <span className="font-medium">{dur}</span>
@@ -695,8 +694,8 @@ export default function CreateCourse() {
             </motion.div>
           )}
         </div>
-        
-        <motion.div 
+
+        <motion.div
           className="bg-white/10 dark:bg-white/10 backdrop-blur-xl rounded-3xl p-8 border border-white/15 shadow-2xl relative overflow-hidden group hover:border-white/25 transition-all duration-500"
           initial={{ opacity: 0, y: 50, scale: 0.9 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -705,23 +704,23 @@ export default function CreateCourse() {
         >
           {/* Animated background gradient */}
           <div className="absolute inset-0 bg-gradient-to-r from-cyan-600/5 via-purple-600/5 to-blue-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-          
+
           {/* Floating icon */}
-          <motion.div 
+          <motion.div
             className="absolute top-4 right-4 w-8 h-8 bg-gradient-to-br from-cyan-500 to-purple-500 rounded-full flex items-center justify-center opacity-20"
-            animate={{ 
+            animate={{
               rotate: [0, 360],
               scale: [1, 1.2, 1]
             }}
-            transition={{ 
+            transition={{
               rotate: { duration: 10, repeat: Infinity, ease: "linear" },
               scale: { duration: 4, repeat: Infinity }
             }}
           >
             <span className="text-white text-xs">📚</span>
           </motion.div>
-          
-          <motion.label 
+
+          <motion.label
             className="block text-xl font-bold mb-4 bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent relative z-10"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -729,7 +728,7 @@ export default function CreateCourse() {
           >
             Number of Chapters
           </motion.label>
-          
+
           <Select value={courseData.chapterCount} onValueChange={(value) => updateCourseData('chapterCount', value)}>
             <SelectTrigger className="h-18 text-lg rounded-2xl border border-white/20 bg-white/10 dark:bg-white/10 backdrop-blur-lg text-white placeholder:text-white/60 focus:border-white/40 focus:ring-white/20 hover:border-white/30 transition-all duration-300 shadow-xl hover:shadow-purple-500/30 [&>span]:text-white relative z-10 group">
               <SelectValue placeholder="Select chapter count" />
@@ -745,9 +744,9 @@ export default function CreateCourse() {
             </SelectTrigger>
             <SelectContent className="bg-white/10 dark:bg-white/10 backdrop-blur-xl border border-white/20 text-white rounded-2xl shadow-2xl p-2">
               {chapterCounts.map((count, index) => (
-                <SelectItem 
-                  key={count} 
-                  value={count} 
+                <SelectItem
+                  key={count}
+                  value={count}
                   className="text-white hover:bg-white/10 focus:bg-white/10 transition-all duration-200 rounded-xl m-1 p-3 cursor-pointer"
                 >
                   <span className="font-medium">{count} chapters</span>
@@ -756,49 +755,49 @@ export default function CreateCourse() {
             </SelectContent>
           </Select>
         </motion.div>
-        
-        <motion.div 
+
+        <motion.div
           className="space-y-6"
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.8, duration: 0.6 }}
         >
           {/* Video option */}
-          <motion.div 
+          <motion.div
             className="bg-white/10 dark:bg-white/10 backdrop-blur-xl rounded-3xl p-8 border border-white/15 shadow-2xl relative overflow-hidden group hover:border-white/25 transition-all duration-500"
             whileHover={{ scale: 1.02, y: -5 }}
           >
             {/* Animated background gradient */}
             <div className="absolute inset-0 bg-gradient-to-r from-purple-600/5 via-blue-600/5 to-violet-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-            
+
             {/* Floating icon */}
-            <motion.div 
+            <motion.div
               className="absolute top-4 right-4 w-8 h-8 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center opacity-20"
-              animate={{ 
+              animate={{
                 rotate: [0, 360],
                 scale: [1, 1.2, 1]
               }}
-              transition={{ 
+              transition={{
                 rotate: { duration: 8, repeat: Infinity, ease: "linear" },
                 scale: { duration: 2, repeat: Infinity }
               }}
             >
               <span className="text-white text-xs">🎥</span>
             </motion.div>
-            
+
             <div className="space-y-4 relative z-10">
               <div className="flex items-center space-x-4">
                 <motion.input
-              type="checkbox"
-              id="includeVideos"
-              checked={courseData.includeVideos}
-              onChange={(e) => updateCourseData('includeVideos', e.target.checked)}
+                  type="checkbox"
+                  id="includeVideos"
+                  checked={courseData.includeVideos}
+                  onChange={(e) => updateCourseData('includeVideos', e.target.checked)}
                   className="w-6 h-6 rounded-lg border border-white/30 bg-white/10 text-white focus:ring-white/30 focus:ring-2 transition-all duration-300"
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.95 }}
                 />
-                <motion.label 
-                  htmlFor="includeVideos" 
+                <motion.label
+                  htmlFor="includeVideos"
                   className="text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent flex items-center space-x-3 cursor-pointer"
                   whileHover={{ x: 5 }}
                   transition={{ duration: 0.2 }}
@@ -810,10 +809,10 @@ export default function CreateCourse() {
                   </div>
                 </motion.label>
               </div>
-              
+
               {/* Video inclusion info with language preference */}
               {courseData.includeVideos && (
-                <motion.div 
+                <motion.div
                   className="mt-6 p-4 bg-white/10 dark:bg-white/10 backdrop-blur-md rounded-xl border border-white/15 space-y-4"
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
@@ -829,7 +828,7 @@ export default function CreateCourse() {
                       </p>
                     </div>
                   </div>
-                  
+
                   {/* Language Preference Selection */}
                   <div className="flex items-center justify-between pt-3 border-t border-white/15">
                     <div className="flex items-center space-x-2">
@@ -845,11 +844,10 @@ export default function CreateCourse() {
                           key={lang.value}
                           type="button"
                           onClick={() => updateCourseData('preferredLanguage', lang.value)}
-                          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 flex items-center space-x-1 ${
-                            courseData.preferredLanguage === lang.value
-                              ? 'bg-white/20 text-white border border-white/40'
-                              : 'bg-white/10 text-white/70 hover:bg-white/15 border border-white/20'
-                          }`}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 flex items-center space-x-1 ${courseData.preferredLanguage === lang.value
+                            ? 'bg-white/20 text-white border border-white/40'
+                            : 'bg-white/10 text-white/70 hover:bg-white/15 border border-white/20'
+                            }`}
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
                         >
@@ -863,51 +861,51 @@ export default function CreateCourse() {
               )}
             </div>
           </motion.div>
-          
-          <motion.div 
+
+          <motion.div
             className="bg-white/10 dark:bg-white/10 backdrop-blur-xl rounded-3xl p-8 border border-white/15 shadow-2xl relative overflow-hidden group hover:border-white/25 transition-all duration-500"
             whileHover={{ scale: 1.02, y: -5 }}
           >
             {/* Animated background gradient */}
             <div className="absolute inset-0 bg-gradient-to-r from-green-600/5 via-emerald-600/5 to-cyan-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-            
+
             {/* Floating icon */}
-            <motion.div 
+            <motion.div
               className="absolute top-4 right-4 w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center opacity-20"
-              animate={{ 
+              animate={{
                 rotate: [0, -360],
                 scale: [1, 1.2, 1]
               }}
-              transition={{ 
+              transition={{
                 rotate: { duration: 12, repeat: Infinity, ease: "linear" },
                 scale: { duration: 5, repeat: Infinity }
               }}
             >
               <span className="text-white text-xs">🧠</span>
             </motion.div>
-            
+
             <div className="flex items-center space-x-4 relative z-10">
               <motion.input
-              type="checkbox"
-              id="includeQuiz"
-              checked={courseData.includeQuiz}
-              onChange={(e) => updateCourseData('includeQuiz', e.target.checked)}
+                type="checkbox"
+                id="includeQuiz"
+                checked={courseData.includeQuiz}
+                onChange={(e) => updateCourseData('includeQuiz', e.target.checked)}
                 className="w-6 h-6 rounded-lg border border-white/30 bg-white/10 text-white focus:ring-white/30 focus:ring-2 transition-all duration-300"
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
               />
-              <motion.label 
-                htmlFor="includeQuiz" 
+              <motion.label
+                htmlFor="includeQuiz"
                 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent flex items-center space-x-3 cursor-pointer"
                 whileHover={{ x: 5 }}
                 transition={{ duration: 0.2 }}
               >
                 <motion.div
-                  animate={{ 
+                  animate={{
                     rotate: [0, 10, -10, 0],
                     scale: [1, 1.1, 1]
                   }}
-                  transition={{ 
+                  transition={{
                     duration: 2,
                     repeat: Infinity,
                     delay: 1
@@ -915,9 +913,9 @@ export default function CreateCourse() {
                 >
                   <Brain className="w-8 h-8 text-purple-500 dark:text-green-400 drop-shadow-lg" />
                 </motion.div>
-              <span>Include quiz questions for each module</span>
+                <span>Include quiz questions for each module</span>
               </motion.label>
-          </div>
+            </div>
           </motion.div>
         </motion.div>
       </div>
@@ -946,7 +944,7 @@ export default function CreateCourse() {
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 dark:from-gray-900 dark:via-slate-900 dark:to-black relative overflow-hidden">
         {/* Subtle Background Effects */}
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-purple-500/10 dark:from-slate-500/10 via-transparent to-blue-500/10 dark:to-slate-700/10"></div>
-        
+
         {/* Background Generation Indicator */}
         {isBackgroundGeneration && (
           <motion.div
@@ -985,7 +983,7 @@ export default function CreateCourse() {
                 <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-purple-500 via-blue-500 to-cyan-500 rounded-full flex items-center justify-center shadow-lg shadow-purple-500/50 animate-pulse">
                   <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                 </div>
-                <h1 className="text-lg sm:text-xl md:text-2xl font-bold bg-gradient-to-r from-purple-600 via-blue-600 to-purple-600 bg-clip-text text-transparent">Create New Course</h1>
+                <h1 className="text-lg sm:text-xl md:text-2xl font-bold ">Create New Course</h1>
               </div>
             </div>
           </div>
@@ -997,13 +995,12 @@ export default function CreateCourse() {
             <div className="flex items-center justify-between">
               {[1, 2, 3].map((step) => (
                 <motion.div key={step} className="flex items-center">
-                  <motion.div 
-                    className={`w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center text-sm sm:text-base md:text-lg font-bold transition-all duration-500 ${
-                      step <= currentStep 
-                        ? 'bg-gradient-to-br from-purple-500 to-blue-600 text-white shadow-lg shadow-purple-500/50 scale-110' 
-                        : 'bg-gray-200 dark:bg-white/10 text-gray-600 dark:text-white/60 border border-gray-300 dark:border-white/20'
-                    }`}
-                    animate={step <= currentStep ? { 
+                  <motion.div
+                    className={`w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center text-sm sm:text-base md:text-lg font-bold transition-all duration-500 ${step <= currentStep
+                      ? 'bg-gradient-to-br from-purple-500 to-blue-600 text-white shadow-lg shadow-purple-500/50 scale-110'
+                      : 'bg-gray-200 dark:bg-white/10 text-gray-600 dark:text-white/60 border border-gray-300 dark:border-white/20'
+                      }`}
+                    animate={step <= currentStep ? {
                       boxShadow: ['0 0 20px rgba(168,85,247,0.5)', '0 0 30px rgba(168,85,247,0.8)', '0 0 20px rgba(168,85,247,0.5)'],
                       scale: [1.1, 1.15, 1.1]
                     } : {}}
@@ -1012,10 +1009,9 @@ export default function CreateCourse() {
                     {step}
                   </motion.div>
                   {step < 3 && (
-                    <motion.div 
-                      className={`w-8 sm:w-12 md:w-20 h-1 mx-2 sm:mx-3 md:mx-4 transition-all duration-500 ${
-                        step < currentStep ? 'bg-gradient-to-r from-purple-500 to-blue-500' : 'bg-gray-200 dark:bg-white/20'
-                      }`}
+                    <motion.div
+                      className={`w-8 sm:w-12 md:w-20 h-1 mx-2 sm:mx-3 md:mx-4 transition-all duration-500 ${step < currentStep ? 'bg-gradient-to-r from-purple-500 to-blue-500' : 'bg-gray-200 dark:bg-white/20'
+                        }`}
                       initial={{ scaleX: 0 }}
                       animate={{ scaleX: step < currentStep ? 1 : 0 }}
                       transition={{ duration: 0.5, delay: 0.2 }}
@@ -1036,7 +1032,7 @@ export default function CreateCourse() {
           </AnimatePresence>
 
           {/* Enhanced Navigation Buttons */}
-          <motion.div 
+          <motion.div
             className="flex justify-between items-center mt-8 sm:mt-12 md:mt-16"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -1090,8 +1086,8 @@ export default function CreateCourse() {
         </div>
 
         {/* Loading Modal */}
-        <LoadingModal 
-          isOpen={isGenerating} 
+        <LoadingModal
+          isOpen={isGenerating}
           onOpenChange={setIsGenerating}
           onCancel={handleCancel}
           onBackground={handleBackground}
