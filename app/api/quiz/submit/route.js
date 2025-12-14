@@ -1,9 +1,27 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { db } from '@/lib/db';
-import { quizAttempts, moduleProgress, users } from '@/lib/db/schema';
+import { quizAttempts, moduleProgress, users, courses } from '@/lib/db/schema';
 import { eq, and, desc } from 'drizzle-orm';
 
+/**
+ * POST - Submit Quiz and Return Review Data
+ * 
+ * RESPONSE FORMAT (MANDATORY per spec):
+ * {
+ *   "score": 4,
+ *   "total": 5,
+ *   "answers": [
+ *     {
+ *       "questionId": "q1",
+ *       "selected": "Supervised algorithm",
+ *       "correct": "Unsupervised clustering algorithm",
+ *       "isCorrect": false,
+ *       "explanation": "K-Means groups data..."
+ *     }
+ *   ]
+ * }
+ */
 export async function POST(request) {
   try {
     const { userId: clerkUserId } = await auth();
@@ -16,12 +34,8 @@ export async function POST(request) {
       courseId,
       moduleId,
       moduleIndex,
-      answers,
-      score,
-      totalQuestions,
-      correctAnswers,
-      wrongAnswers,
-      skippedAnswers = 0,
+      answers,        // { questionId: selectedOption } or { 0: selectedOption }
+      questions,      // Array of quiz questions with correct answers
       timeSpent
     } = body;
 
@@ -43,6 +57,63 @@ export async function POST(request) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
+    // If questions not provided, try to get from course modules
+    let quizQuestions = questions;
+    if (!quizQuestions || quizQuestions.length === 0) {
+      // Fetch course to get quiz data
+      const [course] = await db
+        .select()
+        .from(courses)
+        .where(eq(courses.id, courseId))
+        .limit(1);
+
+      if (course?.modules && Array.isArray(course.modules)) {
+        const module = course.modules[moduleIndex];
+        quizQuestions = module?.quiz || [];
+      }
+    }
+
+    // Build review data with correct answers
+    const reviewAnswers = [];
+    let correctCount = 0;
+    let wrongCount = 0;
+    let skippedCount = 0;
+
+    if (quizQuestions && quizQuestions.length > 0) {
+      quizQuestions.forEach((question, index) => {
+        // Support both index-based and questionId-based answers
+        const questionId = question.id || `q${index}`;
+        const selected = answers[questionId] || answers[index] || answers[String(index)] || null;
+
+        // Get correct answer - support multiple field names
+        const correctAnswer = question.correctAnswer || question.correct_answer || question.answer;
+
+        // Check if correct
+        const isCorrect = selected === correctAnswer;
+
+        if (selected === null || selected === undefined) {
+          skippedCount++;
+        } else if (isCorrect) {
+          correctCount++;
+        } else {
+          wrongCount++;
+        }
+
+        reviewAnswers.push({
+          questionId: questionId,
+          question: question.question,
+          selected: selected,
+          correct: correctAnswer,
+          isCorrect: isCorrect,
+          explanation: question.explanation || null,
+          options: question.options || []
+        });
+      });
+    }
+
+    const totalQuestions = quizQuestions?.length || Object.keys(answers).length;
+    const score = totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 0;
+
     // Get attempt number
     const previousAttempts = await db
       .select()
@@ -56,11 +127,11 @@ export async function POST(request) {
       )
       .orderBy(desc(quizAttempts.attemptNumber));
 
-    const attemptNumber = previousAttempts.length > 0 
-      ? previousAttempts[0].attemptNumber + 1 
+    const attemptNumber = previousAttempts.length > 0
+      ? previousAttempts[0].attemptNumber + 1
       : 1;
 
-    // Save quiz attempt
+    // Save quiz attempt with full review data
     const [attempt] = await db
       .insert(quizAttempts)
       .values({
@@ -70,11 +141,11 @@ export async function POST(request) {
         moduleIndex,
         score,
         totalQuestions,
-        correctAnswers,
-        wrongAnswers,
-        skippedAnswers,
-        timeSpent,
-        answers,
+        correctAnswers: correctCount,
+        wrongAnswers: wrongCount,
+        skippedAnswers: skippedCount,
+        timeSpent: timeSpent || null,
+        answers: reviewAnswers, // Store full review data
         isPassed: score >= 70,
         attemptNumber
       })
@@ -105,24 +176,32 @@ export async function POST(request) {
         .where(eq(moduleProgress.id, existingProgress.id));
     }
 
+    // Return review data per spec
     return NextResponse.json({
       success: true,
-      attempt,
+      score: correctCount,
+      total: totalQuestions,
+      percentage: score,
+      answers: reviewAnswers,
       attemptNumber,
-      bestScore: existingProgress 
+      bestScore: existingProgress
         ? Math.max(existingProgress.bestQuizScore || 0, score)
-        : score
+        : score,
+      isPassed: score >= 70
     });
   } catch (error) {
     console.error('Error submitting quiz:', error);
     return NextResponse.json(
-      { error: 'Failed to submit quiz' },
+      { error: 'Failed to submit quiz', details: error.message },
       { status: 500 }
     );
   }
 }
 
-// GET - Fetch quiz attempts
+/**
+ * GET - Fetch quiz attempts and review data
+ * Returns previous attempt with correct answers for review mode
+ */
 export async function GET(request) {
   try {
     const { userId: clerkUserId } = await auth();
@@ -152,7 +231,7 @@ export async function GET(request) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // Fetch all attempts for this module
+    // Fetch all attempts for this module (most recent first)
     const attempts = await db
       .select()
       .from(quizAttempts)
@@ -169,10 +248,22 @@ export async function GET(request) {
       ? Math.max(...attempts.map(a => a.score))
       : 0;
 
+    const latestAttempt = attempts[0] || null;
+
     return NextResponse.json({
+      success: true,
       attempts,
       totalAttempts: attempts.length,
-      bestScore
+      bestScore,
+      latestAttempt,
+      // Return review data from latest attempt
+      reviewData: latestAttempt ? {
+        score: latestAttempt.correctAnswers,
+        total: latestAttempt.totalQuestions,
+        percentage: latestAttempt.score,
+        answers: latestAttempt.answers,
+        submittedAt: latestAttempt.createdAt
+      } : null
     });
   } catch (error) {
     console.error('Error fetching quiz attempts:', error);

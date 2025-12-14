@@ -74,8 +74,11 @@ export default function CourseDetail() {
       console.error('Error saving progress:', error);
     }
 
+    // Move to next module if not the last one
     if (course?.modules && moduleIndex < course.modules.length - 1) {
       setActiveModuleIndex(moduleIndex + 1);
+      // Scroll to top of content area for better UX
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
@@ -115,7 +118,13 @@ export default function CourseDetail() {
         <CourseHeader
           course={course}
           completionPercentage={completionPercentage}
-          onBack={() => router.push('/courses')}
+          activeModule={activeModule}
+          totalModules={course?.modules?.length || 0}
+          completedCount={completedModules.size}
+          onContinue={() => {
+            const contentArea = document.getElementById('module-content');
+            if (contentArea) contentArea.scrollIntoView({ behavior: 'smooth' });
+          }}
         />
 
 
@@ -249,6 +258,7 @@ export default function CourseDetail() {
                   {activeModule?.quiz && activeModule.quiz.length > 0 && (
                     <ModuleQuiz
                       module={activeModule}
+                      moduleIndex={activeModuleIndex}
                       onComplete={() => handleModuleComplete(activeModuleIndex)}
                     />
                   )}

@@ -18,7 +18,7 @@ export default function CreateAIPage() {
     // Form state
     const [topic, setTopic] = useState('');
     const [difficulty, setDifficulty] = useState('intermediate');
-    const [moduleCount, setModuleCount] = useState(5);
+    const [moduleCount, setModuleCount] = useState(3);
     const [includeVideos, setIncludeVideos] = useState(false);
     const [includeQuiz, setIncludeQuiz] = useState(true);
 
@@ -202,7 +202,7 @@ export default function CreateAIPage() {
                             <label className="text-white/70 text-sm font-medium">Number of Modules</label>
                             <ModuleCountInput
                                 min={3}
-                                max={10}
+                                max={7}
                                 value={moduleCount}
                                 onChange={setModuleCount}
                             />

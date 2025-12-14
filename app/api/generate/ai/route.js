@@ -1,17 +1,48 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import Groq from 'groq-sdk';
-import { ensureModuleVideos } from '@/lib/youtube/fetchVideos';
 import { makeCacheKey, getCachedCourse, setCachedCourse } from '@/lib/cache/courseCache';
 import { courseGenerationSchema, courseOutputSchema } from '@/lib/validations/course';
 import { normalizeGenerateAiPayload } from "@/lib/utils/normalizeGenerateAiPayload";
 import { repairLLMOutput } from "@/lib/utils/repairLLMOutput";
 import { cleanJSON } from "@/lib/utils/cleanJSON";
 import { safeJSONParse } from "@/lib/utils/safeJSONParse";
+import { getSafeYouTubeVideos } from '@/lib/youtube/getSafeVideos';
+import { generateCourseId } from '@/lib/youtube/videoCache';
+import { generateModuleQuiz } from '@/lib/quiz/generateQuiz';
 
 const groq = new Groq({
     apiKey: process.env.GROQ_API_KEY,
 });
+
+// Helper: Generate module titles for a topic
+function generateModuleTitles(topic, count) {
+    const titles = [];
+    const prefixes = [
+        'Introduction to',
+        'Fundamentals of',
+        'Core Concepts in',
+        'Advanced Topics in',
+        'Practical Applications of',
+        'Best Practices for',
+        'Deep Dive into',
+        'Mastering'
+    ];
+
+    for (let i = 0; i < count; i++) {
+        const prefix = prefixes[i % prefixes.length];
+        titles.push(`${prefix} ${topic}`);
+    }
+    return titles;
+}
+
+// Helper: Extract section content from raw text
+function extractSection(text, sectionName) {
+    const regex = new RegExp(`${sectionName}[:\\s]*\\n([\\s\\S]*?)(?=\\n[A-Z][A-Z\\s]+:|$)`, 'i');
+    const match = text.match(regex);
+    return match ? match[1].trim() : '';
+}
+
 
 export async function POST(request) {
     try {
@@ -64,216 +95,379 @@ export async function POST(request) {
         console.log(`🔄 Cache miss - Generating new course for: "${topic}"`);
         // ====================================
 
-        const quizSection = includeQuiz ? `
-📝 Module Quiz
-Include 5 quiz questions per module in this format:
-{
-  "question": "Question text",
-  "options": ["A) option", "B) option", "C) option", "D) option"],
-  "correctAnswer": "A"
-}` : '';
+        // ===== DIFFICULTY-AWARE CONTENT GUIDELINES =====
+        const difficultyGuidelines = {
+            Beginner: `
+STYLE: Write for beginners. Use simple language, analogies, and real-life examples. Explain concepts step-by-step.`,
 
-        const videoSection = includeVideos ? `
-🎥 YouTube Learning Resources
-For each module, provide 2-3 recommended YouTube video searches with:
-{
-  "title": "Video title suggestion",
-  "searchQuery": "YouTube search query to find this video",
-  "reason": "Why this video is useful"
-}` : '';
+            Intermediate: `
+STYLE: Write for intermediate learners. Use technical terminology, explain how things work, and include practical applications.`,
 
-        const prompt = `You are IntelliCourse AI. You MUST generate course modules in the exact structure used by IntelliCourse’s UI.
+            Advanced: `
+STYLE: Write for advanced learners. Use academic language, discuss trade-offs, edge cases, and professional insights.`
+        };
 
-STRICT OUTPUT FORMAT (DO NOT CHANGE KEYS OR NESTING):
+        // Select guidelines based on difficulty level
+        const selectedGuidelines = difficultyGuidelines[difficulty] || difficultyGuidelines.Intermediate;
 
-{
-  "title": "Course Title",
-  "modules": [
-    {
-      "title": "Module Title",
-      "description": "Short paragraph.",
-      "content": [
-        { "section": "Introduction", "text": "Full paragraph text." },
-        { "section": "Core Concepts", "text": "Bullet points with \\n- item1 \\n- item2" },
-        { "section": "Real-World Examples", "text": "Two examples." },
-        { "section": "Best Practices", "text": "Bullet list." },
-        { "section": "Common Mistakes to Avoid", "text": "Bullet list." },
-        { "section": "Key Takeaways", "text": "3-5 bullet points." }
-      ],
-      "videos": [
-        { "title": "Video Title", "url": "https://www.youtube.com/watch?v=xxxx" }
-      ],
-      "quiz": [
-        { "question": "Q?", "options": ["A","B","C","D"], "answer": "A" }
-      ]
-    }
-  ]
-}
+        // ===== 2-STEP LLM GENERATION =====
+        // Step 1: Generate content as free text (focus on quality)
+        // Step 2: Convert to JSON MODULE BY MODULE (prevents truncation)
+        // This separates semantic generation from structural serialization
 
-RULES:
+        console.log('📝 Generating content MODULE BY MODULE...');
 
-1. Every module MUST contain exactly the 6 sections listed above.
-2. Use rich formatting inside text:
-   - Bold important terms
-   - Numbered lists
-   - Bullet lists
-   - Short paragraphs for easy reading
-3. Each module must have 1–3 YouTube videos (leave array empty if video enabled = false).
-4. Each module must have exactly 5 quiz questions.
-5. Quiz answers MUST always be provided.
-6. Never hallucinate code blocks, markdown fences, or undefined fields.
-7. Ensure the final JSON is valid and strictly matches the schema above.
+        const convertedModules = [];
+        const moduleTitles = generateModuleTitles(topic, moduleCount || 5);
 
-Your only output must be the JSON object. Do not include explanations or commentary.
+        // GENERATE EACH MODULE SEPARATELY (guaranteed full content)
+        for (let i = 0; i < (moduleCount || 5); i++) {
+            const moduleTitle = moduleTitles[i] || `Module ${i + 1}: ${topic}`;
 
-Course Topic: ${topic}
-Difficulty: ${difficulty || 'Intermediate'}
-Number of Modules: ${moduleCount || 5}
-Include Quizzes: ${includeQuiz ? 'yes' : 'no'}
-Include Videos: ${includeVideos ? 'yes' : 'no'}
-${quizSection}
-${videoSection}
-`;
+            console.log(`   📄 Generating module ${i + 1}/${moduleCount || 5}: ${moduleTitle}...`);
 
-        const completion = await groq.chat.completions.create({
-            model: 'llama-3.3-70b-versatile',
-            messages: [
-                {
-                    role: 'system',
-                    content: 'You are an expert educational course creator. Generate comprehensive, well-structured courses. Return only valid JSON without markdown code blocks. Make content detailed, educational, and beginner-friendly.'
-                },
-                { role: 'user', content: prompt },
-            ],
-            temperature: 0.7,
-            max_tokens: 8192,
-        });
+            // STEP 1: Generate content for THIS module only (SIMPLIFIED)
+            const moduleContentPrompt = `Generate educational content for students.
 
-        const response = completion.choices[0]?.message?.content;
+TOPIC: ${topic}
+MODULE: ${moduleTitle} (${i + 1} of ${moduleCount || 5})
+LEVEL: ${difficulty || 'Intermediate'}
 
-        try {
-            // Enhanced Parsing Pipeline
-            const cleaned = cleanJSON(response);
-            let parsed;
+${selectedGuidelines}
 
-            try {
-                parsed = safeJSONParse(cleaned);
-            } catch (err) {
-                console.error("❌ JSON parse failed:", err);
-                console.error("Raw response snippet:", response?.substring(0, 200));
-                return NextResponse.json({ error: 'LLM returned invalid JSON' }, { status: 500 });
-            }
+Write content with these sections:
 
-            // REPAIR: Auto-fix common LLM issues (missing answers, titles, etc.)
-            const repaired = repairLLMOutput(parsed);
+DESCRIPTION:
+A brief overview of what students will learn.
 
-            // Validate structure
-            const validationResult = courseOutputSchema.safeParse(repaired);
+INTRODUCTION:
+Explain what this topic is and why it matters.
 
-            if (!validationResult.success) {
-                console.warn("⚠️ LLM Output Validation Failed, using repaired fallback:", validationResult.error.format());
-            }
+CORE CONCEPTS:
+Explain the key concepts clearly.
 
-            // Use validated data if success, otherwise use robust repaired data
-            const course = validationResult.success ? validationResult.data : repaired;
+REAL-WORLD EXAMPLES:
+Give practical examples where this is used.
 
-            if (course.modules) {
-                course.modules = course.modules.map((module, index) => {
-                    // Build comprehensive description from content array
-                    let fullDescription = '';
+BEST PRACTICES:
+What should students do to apply this well?
 
-                    if (Array.isArray(module.content)) {
-                        module.content.forEach(section => {
-                            if (section.section && section.text) {
-                                let icon = '📌';
-                                if (section.section.includes('Introduction')) icon = '📚';
-                                if (section.section.includes('Core Concepts')) icon = '🎯';
-                                if (section.section.includes('Real-World Examples')) icon = '💡';
-                                if (section.section.includes('Best Practices')) icon = '✅';
-                                if (section.section.includes('Common Mistakes')) icon = '⚠️';
-                                if (section.section.includes('Key Takeaways')) icon = '🎓';
+COMMON MISTAKES:
+What mistakes should students avoid?
 
-                                fullDescription += `## ${icon} ${section.section}\n\n${section.text}\n\n`;
-                            }
-                        });
+KEY TAKEAWAYS:
+Summarize the main points.
+
+Write naturally - as if explaining to a student. Keep it clear and educational.`;
+
+            let moduleContent = '';
+            let retryCount = 0;
+            const maxRetries = 2;
+
+            while (retryCount < maxRetries) {
+                try {
+                    const moduleCompletion = await groq.chat.completions.create({
+                        model: 'llama-3.3-70b-versatile',
+                        messages: [
+                            {
+                                role: 'system',
+                                content: 'You are a helpful teacher creating course content for students. Write clear, educational content. Do not output JSON or markdown code blocks.'
+                            },
+                            { role: 'user', content: moduleContentPrompt },
+                        ],
+                        temperature: 0.7,
+                        max_tokens: 3000,
+                    });
+
+                    moduleContent = moduleCompletion.choices[0]?.message?.content || '';
+
+                    // Basic validation - ensure we got some content
+                    if (moduleContent.length < 500) {
+                        throw new Error('Content too short');
                     }
 
-                    if (fullDescription.length === 0) {
-                        // Fallback if content array is dry for some reason
-                        fullDescription = module.description || "No content generated.";
+                    console.log(`   ✅ Module ${i + 1}: Generated ${moduleContent.length} characters`);
+                    break;
+
+
+                } catch (err) {
+                    retryCount++;
+                    console.warn(`   ⚠️ Module ${i + 1} attempt ${retryCount} failed: ${err.message}`);
+
+                    if (retryCount >= maxRetries) {
+                        // Use whatever we have
+                        console.log(`   ⚠️ Module ${i + 1}: Using partial content after retries`);
                     }
 
-                    // Add completion message
-                    fullDescription += `---\n\n🏁 **Great job! You have completed this module.**\n`;
-
-                    return {
-                        ...module,
-                        id: `module-${index}`,
-                        orderIndex: index + 1,
-                        description: fullDescription || module.description,
-                        quiz: includeQuiz && module.quiz ? module.quiz : [],
-                        videos: module.videos || [], // Will be populated below if includeVideos
-                    };
-                });
-            }
-
-            // Fetch and rank YouTube videos for each module if includeVideos is true
-            if (includeVideos && course.modules && Array.isArray(course.modules)) {
-                console.log('📺 Fetching and ranking YouTube videos for modules...');
-
-                // Use new FINAL SAFE PIPELINE
-                const { getSafeYouTubeVideos } = await import('@/lib/youtube/getSafeVideos');
-
-                for (let i = 0; i < course.modules.length; i++) {
-                    const module = course.modules[i];
-
-                    // Check if module already has valid YouTube videos
-                    const hasValidVideos = module.videos &&
-                        Array.isArray(module.videos) &&
-                        module.videos.length > 0 &&
-                        module.videos.some(v => v.url && v.url.includes('youtube'));
-
-                    if (!hasValidVideos) {
-                        try {
-                            const searchQuery = `${module.title} ${topic} tutorial`;
-                            course.modules[i].videos = await getSafeYouTubeVideos(searchQuery);
-                        } catch (err) {
-                            console.error(`   ⚠️ Module ${i + 1}: Video fetch failed - ${err.message}`);
-                            course.modules[i].videos = [{
-                                title: "No verified videos available for this module yet.",
-                                url: null
-                            }];
-                        }
-                    } else {
-                        console.log(`   ℹ️ Module ${i + 1}: Already has ${module.videos.length} videos`);
-                    }
+                    await new Promise(resolve => setTimeout(resolve, 500));
                 }
             }
 
-            // Build final course object
-            const finalCourse = {
-                ...course,
-                topic,
-                include_quiz: includeQuiz,
-                include_videos: includeVideos,
-                chapterCount: course.modules?.length || moduleCount,
-            };
+            // STEP 2: Convert this module's content to JSON
+            const moduleJsonPrompt = `Convert this SINGLE module content into JSON.
 
-            // Store in cache for future identical requests
-            await setCachedCourse(cacheKey, finalCourse);
-            console.log(`💾 Course cached for: "${topic}"`);
+RULES:
+- Output ONLY valid JSON
+- Preserve ALL text exactly - do NOT truncate
+- Escape quotes properly
 
-            return NextResponse.json({
-                success: true,
-                course: finalCourse,
-                cached: false,
-            });
-        } catch (parseError) {
-            console.error('Failed to parse course:', parseError);
-            console.error('Raw response:', response?.substring(0, 500));
-            return NextResponse.json({ error: 'Failed to parse generated course' }, { status: 500 });
+JSON SCHEMA:
+{
+  "title": "${moduleTitle}",
+  "description": "Description text",
+  "content": [
+    { "section": "Introduction", "text": "..." },
+    { "section": "Core Concepts", "text": "..." },
+    { "section": "Real-World Examples", "text": "..." },
+    { "section": "Best Practices", "text": "..." },
+    { "section": "Common Mistakes to Avoid", "text": "..." },
+    { "section": "Key Takeaways", "text": "..." }
+  ],
+  "quiz": [],
+  "videos": []
+}
+
+MODULE CONTENT:
+<<<
+${moduleContent.substring(0, 5000)}
+>>>
+
+OUTPUT ONLY THE JSON OBJECT.`;
+
+            let moduleJson = null;
+            retryCount = 0;
+
+            while (retryCount < maxRetries && !moduleJson) {
+                try {
+                    const jsonCompletion = await groq.chat.completions.create({
+                        model: 'llama-3.3-70b-versatile',
+                        messages: [
+                            {
+                                role: 'system',
+                                content: 'Output ONLY valid JSON. No markdown, no explanations.'
+                            },
+                            { role: 'user', content: moduleJsonPrompt },
+                        ],
+                        temperature: 0.2,
+                        max_tokens: 4096,
+                    });
+
+                    const response = jsonCompletion.choices[0]?.message?.content;
+
+                    if (!response || !response.trim().endsWith('}')) {
+                        throw new Error('JSON truncated');
+                    }
+
+                    const cleaned = cleanJSON(response);
+                    moduleJson = safeJSONParse(cleaned);
+
+                } catch (err) {
+                    retryCount++;
+                    if (retryCount >= maxRetries) {
+                        // Fallback module
+                        moduleJson = {
+                            title: moduleTitle,
+                            description: moduleContent.substring(0, 500) || `Module ${i + 1} content`,
+                            content: [
+                                { section: "Introduction", text: moduleContent.substring(0, 1500) || "Content generation in progress." },
+                                { section: "Core Concepts", text: extractSection(moduleContent, "CORE CONCEPTS") || "" },
+                                { section: "Real-World Examples", text: extractSection(moduleContent, "REAL-WORLD EXAMPLES") || "" },
+                                { section: "Best Practices", text: extractSection(moduleContent, "BEST PRACTICES") || "" },
+                                { section: "Common Mistakes to Avoid", text: extractSection(moduleContent, "COMMON MISTAKES") || "" },
+                                { section: "Key Takeaways", text: extractSection(moduleContent, "KEY TAKEAWAYS") || "" }
+                            ],
+                            quiz: [],
+                            videos: []
+                        };
+                    }
+                    await new Promise(resolve => setTimeout(resolve, 300));
+                }
+            }
+
+            if (moduleJson) {
+                convertedModules.push(moduleJson);
+            }
         }
+
+        // Build parsed course object
+        let parsed = {
+            title: `${topic} - Complete Course`,
+            modules: convertedModules
+        };
+
+        console.log(`✅ Content generation complete: ${convertedModules.length} modules`);
+
+        // If no modules were converted, fail gracefully
+        if (convertedModules.length === 0) {
+            console.error('❌ Generation failed: No modules created');
+            return NextResponse.json({ error: 'Failed to generate any modules' }, { status: 500 });
+        }
+
+        // Build parsed course object
+        parsed = {
+            title: `${topic} - Complete Course`,
+            modules: convertedModules
+        };
+
+        // If no modules were converted, fail gracefully
+        if (convertedModules.length === 0) {
+            console.error('❌ Step 2 failed: No modules converted');
+            return NextResponse.json({ error: 'Failed to convert any modules' }, { status: 500 });
+        }
+
+        console.log(`✅ Step 2 complete: Converted ${convertedModules.length} modules`);
+
+
+        // REPAIR: Auto-fix common LLM issues (missing answers, titles, etc.)
+        const repaired = repairLLMOutput(parsed);
+
+        // Validate structure
+        const validationResult = courseOutputSchema.safeParse(repaired);
+
+        if (!validationResult.success) {
+            console.warn("⚠️ LLM Output Validation Failed, using repaired fallback:", validationResult.error.format());
+        }
+
+        // Use validated data if success, otherwise use robust repaired data
+        const course = validationResult.success ? validationResult.data : repaired;
+
+        // STEP 3: Process modules and generate quizzes AFTER content is finalized
+        if (course.modules) {
+            console.log('📝 Processing modules and generating quizzes...');
+
+            const processedModules = [];
+
+            for (let index = 0; index < course.modules.length; index++) {
+                const module = course.modules[index];
+
+                // Build comprehensive description from content array
+                let fullDescription = '';
+
+                if (Array.isArray(module.content)) {
+                    module.content.forEach(section => {
+                        if (section.section && section.text) {
+                            let icon = '📌';
+                            if (section.section.includes('Introduction')) icon = '📚';
+                            if (section.section.includes('Core Concepts')) icon = '🎯';
+                            if (section.section.includes('Real-World Examples')) icon = '💡';
+                            if (section.section.includes('Best Practices')) icon = '✅';
+                            if (section.section.includes('Common Mistakes')) icon = '⚠️';
+                            if (section.section.includes('Key Takeaways')) icon = '🎓';
+
+                            fullDescription += `## ${icon} ${section.section}\n\n${section.text}\n\n`;
+                        }
+                    });
+                }
+
+                if (fullDescription.length === 0) {
+                    fullDescription = module.description || "No content generated.";
+                }
+
+                // Add completion message
+                fullDescription += `---\n\n🏁 **Great job! You have completed this module.**\n`;
+
+                // ===== GENERATE QUIZ FOR EACH MODULE =====
+                let quiz = [];
+                try {
+                    console.log(`   🧠 Generating quiz for module ${index + 1}: ${module.title}`);
+                    quiz = await generateModuleQuiz(
+                        module.title,
+                        fullDescription,
+                        difficulty,
+                        5 // 5 questions per module
+                    );
+                    console.log(`   ✅ Module ${index + 1}: ${quiz.length} questions`);
+                } catch (quizErr) {
+                    console.error(`   ❌ Module ${index + 1}: Quiz failed - ${quizErr.message}`);
+                    quiz = [];
+                }
+
+                processedModules.push({
+                    ...module,
+                    id: `module-${index}`,
+                    orderIndex: index + 1,
+                    description: fullDescription,
+                    quiz: quiz,
+                    videos: module.videos || [],
+                });
+            }
+
+            course.modules = processedModules;
+        }
+
+        // Fetch and rank YouTube videos for each module if includeVideos is true
+        // ===== NEW ROBUST YOUTUBE PIPELINE =====
+        // Uses course+module-specific caching with user isolation
+        if (includeVideos && course.modules && Array.isArray(course.modules)) {
+            console.log('📺 Fetching YouTube videos with robust 5-phase pipeline...');
+
+            // Generate unique course ID for cache isolation
+            const courseId = generateCourseId(topic);
+            console.log(`   Course ID: ${courseId}`);
+
+            for (let i = 0; i < course.modules.length; i++) {
+                const module = course.modules[i];
+
+                // ALWAYS use the safe pipeline - never trust LLM-generated URLs
+                try {
+                    const result = await getSafeYouTubeVideos(
+                        topic,           // courseTitle
+                        module.title,    // moduleTitle
+                        {
+                            userId: userId,
+                            courseId: courseId,
+                            moduleIndex: i
+                        }
+                    );
+
+                    if (result.status === "OK" && result.videos.length > 0) {
+                        // Convert to expected format for UI
+                        course.modules[i].videos = result.videos.map(v => ({
+                            title: v.title,
+                            url: `https://www.youtube.com/watch?v=${v.videoId}`,
+                            embedUrl: v.embedUrl,
+                            channelTitle: v.channel,
+                            views: v.views,
+                            likes: v.likes,
+                            thumbnail: v.thumbnail,
+                            videoId: v.videoId
+                        }));
+                        console.log(`   ✅ Module ${i + 1}: ${result.videos.length} verified videos${result.cached ? ' (cached)' : ''}`);
+                    } else {
+                        // Clean fallback - no broken embeds
+                        course.modules[i].videos = [];
+                        course.modules[i].videoStatus = "NO_SAFE_VIDEOS";
+                        console.log(`   ⚠️ Module ${i + 1}: No safe videos available`);
+                    }
+                } catch (err) {
+                    console.error(`   ❌ Module ${i + 1}: Video fetch failed - ${err.message}`);
+                    course.modules[i].videos = [];
+                    course.modules[i].videoStatus = "FETCH_ERROR";
+                }
+            }
+        }
+
+        // Build final course object
+        const finalCourse = {
+            ...course,
+            topic,
+            include_quiz: includeQuiz,
+            include_videos: includeVideos,
+            chapterCount: course.modules?.length || moduleCount,
+        };
+
+        // Store in cache for future identical requests
+        await setCachedCourse(cacheKey, finalCourse);
+        console.log(`💾 Course cached for: "${topic}"`);
+
+        return NextResponse.json({
+            success: true,
+            course: finalCourse,
+            cached: false,
+        });
     } catch (error) {
         console.error('Generate AI API error:', error);
         return NextResponse.json({ error: 'Failed to generate course' }, { status: 500 });
     }
 }
+

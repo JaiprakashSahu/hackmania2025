@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { BookOpen, Plus, Loader2, Search, MoreVertical, Download, Trash2, X } from 'lucide-react';
+import { BookOpen, Plus, Loader2, Search, MoreVertical, Download, Trash2, X, Youtube, GraduationCap, WifiOff, Check } from 'lucide-react';
 import Link from 'next/link';
 import { Card } from '@/components/ui/card';
+import { saveToOfflineLibrary } from '@/lib/offline/offlineLibrary';
 
 // Course Menu Component
 function CourseMenu({ course, onExport, onDelete }) {
@@ -75,11 +76,24 @@ export default function CoursesPage() {
         }
     };
 
+    const [exportSuccess, setExportSuccess] = useState(null);
+
     const handleExportCourse = async (courseId, courseTitle) => {
         try {
             const response = await fetch(`/api/courses/${courseId}`);
             if (!response.ok) throw new Error('Failed to export');
             const data = await response.json();
+
+            // Save to offline library (IndexedDB)
+            const courseData = {
+                id: courseId,
+                title: courseTitle,
+                ...data.course,
+                exportedAt: new Date().toISOString()
+            };
+            await saveToOfflineLibrary(courseData);
+
+            // Also download as file
             const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -89,6 +103,10 @@ export default function CoursesPage() {
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
+
+            // Show success indicator
+            setExportSuccess(courseId);
+            setTimeout(() => setExportSuccess(null), 2000);
         } catch (error) {
             console.error('Error exporting course:', error);
         }
@@ -165,37 +183,91 @@ export default function CoursesPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                         {filteredCourses.map((course) => {
                             const totalModules = course.modules?.length || course.chapterCount || 0;
+                            // Calculate completion from course progress data
+                            const completedModules = course.completedModules || 0;
+                            const completionPercent = totalModules > 0
+                                ? Math.round((completedModules / totalModules) * 100)
+                                : (course.progressPercentage || 0);
+
+                            // Check for YouTube videos
+                            const hasVideos = course.include_videos ||
+                                (course.modules && course.modules.some(m => m.videos && m.videos.length > 0));
+
+                            // Difficulty badge colors - light versions
+                            const difficultyColors = {
+                                'Beginner': 'bg-green-400/10 text-green-300 border-green-400/20',
+                                'Intermediate': 'bg-white/10 text-white/70 border-white/20',
+                                'Advanced': 'bg-red-400/10 text-red-300 border-red-400/20'
+                            };
+                            const difficulty = course.difficulty || 'Intermediate';
 
                             return (
                                 <div
                                     key={course.id}
-                                    className="bg-[#1c1c29] border border-white/10 rounded-2xl p-5 transition hover:border-[#9B6BFF]/40 group relative"
+                                    className="bg-[#1c1c29] border border-white/10 rounded-2xl overflow-hidden transition hover:border-[#9B6BFF]/40 group relative"
                                 >
-                                    <div className="flex items-start justify-between">
-                                        <h3 className="text-lg font-medium text-white line-clamp-1 pr-4">
-                                            {course.title}
-                                        </h3>
-                                        <CourseMenu
-                                            course={course}
-                                            onExport={() => handleExportCourse(course.id, course.title)}
-                                            onDelete={() => setDeleteModal(course)}
-                                        />
+                                    {/* Shaded Header Area */}
+                                    <div className="bg-gradient-to-br from-[#252535] to-[#1c1c29] p-5 border-b border-white/5">
+                                        <div className="flex items-start justify-between">
+                                            <h3 className="text-lg font-semibold text-white line-clamp-2 pr-4 flex-1">
+                                                {course.title?.replace(' - Complete Course', '')}
+                                            </h3>
+                                            <CourseMenu
+                                                course={course}
+                                                onExport={() => handleExportCourse(course.id, course.title)}
+                                                onDelete={() => setDeleteModal(course)}
+                                            />
+                                        </div>
                                     </div>
 
-                                    <p className="text-sm text-white/50 mt-2 line-clamp-2 min-h-[40px]">
-                                        {course.description || "No description available."}
-                                    </p>
+                                    {/* Card Body */}
+                                    <div className="p-5">
+                                        {/* Badges Row */}
+                                        <div className="flex flex-wrap items-center gap-2 mb-4">
+                                            {/* Difficulty Badge */}
+                                            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full border ${difficultyColors[difficulty]}`}>
+                                                <GraduationCap className="w-3 h-3" />
+                                                {difficulty}
+                                            </span>
 
-                                    <div className="flex items-center justify-between mt-5">
-                                        <span className="text-xs text-white/40">
-                                            {totalModules} Modules
-                                        </span>
+                                            {/* YouTube Icon */}
+                                            {hasVideos && (
+                                                <Youtube className="w-4 h-4 text-red-400" />
+                                            )}
 
+                                            {/* Modules Count */}
+                                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full bg-white/5 text-white/50 border border-white/10">
+                                                <BookOpen className="w-3 h-3" />
+                                                {totalModules} Modules
+                                            </span>
+                                        </div>
+
+                                        {/* Completion Progress */}
+                                        <div className="mb-4">
+                                            <div className="flex items-center justify-between mb-1.5">
+                                                <span className="text-xs text-white/40">Completion</span>
+                                                <span className="text-sm font-medium text-white/60">
+                                                    {completionPercent}%
+                                                </span>
+                                            </div>
+                                            <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+                                                <div
+                                                    className="h-full rounded-full transition-all duration-500"
+                                                    style={{
+                                                        width: `${completionPercent}%`,
+                                                        backgroundColor: `rgba(${134 + (121 * (1 - completionPercent / 100))}, ${239 - (39 * (1 - completionPercent / 100))}, ${172 + (83 * (1 - completionPercent / 100))}, 0.4)`
+                                                    }}
+                                                />
+                                            </div>
+                                        </div>
+
+                                        {/* Action Button */}
                                         <Link
                                             href={`/course/${course.id}`}
-                                            className="text-sm text-[#9B6BFF] hover:underline flex items-center gap-1"
+                                            className="w-full flex items-center justify-center gap-2 py-2.5 bg-[#9B6BFF]/10 hover:bg-[#9B6BFF]/20 text-[#9B6BFF] text-sm font-medium rounded-xl transition-colors border border-[#9B6BFF]/20"
                                         >
-                                            Open <span className="text-xs">→</span>
+                                            {completionPercent === 100 ? 'Review' : completionPercent > 0 ? 'Continue Learning' : 'Start Course'}
+                                            <span>→</span>
                                         </Link>
                                     </div>
                                 </div>

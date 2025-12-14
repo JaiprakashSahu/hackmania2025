@@ -2,31 +2,106 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CheckCircle2, XCircle, Brain, Trophy, RefreshCw } from 'lucide-react';
+import { CheckCircle2, XCircle, Brain, Trophy, RefreshCw, Loader2, Lightbulb } from 'lucide-react';
+import { useParams } from 'next/navigation';
 
-export default function ModuleQuiz({ module, onComplete }) {
+/**
+ * Module Quiz Component with API Integration
+ * 
+ * After quiz submission, the system enters review mode where correct answers,
+ * user selections, and explanations are rendered based on stored quiz attempts,
+ * ensuring transparency and effective learning reinforcement.
+ */
+export default function ModuleQuiz({ module, moduleIndex = 0, onComplete }) {
+  const { id: courseId } = useParams();
+
   const [quizStarted, setQuizStarted] = useState(true);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [userAnswers, setUserAnswers] = useState({});
-  const [showResults, setShowResults] = useState(false);
+  const [selectedAnswers, setSelectedAnswers] = useState({});
+  const [submitted, setSubmitted] = useState(false);
+  const [reviewData, setReviewData] = useState(null);
   const [score, setScore] = useState(0);
+  const [total, setTotal] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Module ID for API
+  const moduleId = module?.id || `module-${moduleIndex}`;
 
   // Reset quiz state when module changes
   useEffect(() => {
+    // Reset all quiz state for new module
     setQuizStarted(true);
     setCurrentQuestionIndex(0);
-    setUserAnswers({});
-    setShowResults(false);
+    setSelectedAnswers({});
+    setSubmitted(false);
+    setReviewData(null);
     setScore(0);
-  }, [module]);
+    setTotal(0);
+    setIsLoading(true);
+  }, [moduleIndex, module?.id]);
 
-  if (!module.quiz || module.quiz.length === 0) {
+  // Fetch previous attempt on mount or when module changes
+  useEffect(() => {
+    async function fetchPreviousAttempt() {
+      if (!courseId || !moduleId) {
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        const res = await fetch(
+          `/api/quiz/submit?courseId=${courseId}&moduleId=${moduleId}`
+        );
+
+        if (res.ok) {
+          const data = await res.json();
+
+          if (data.success && data.reviewData && data.reviewData.answers) {
+            // Restore review state from previous attempt
+            setReviewData(data.reviewData.answers);
+            setScore(data.reviewData.score);
+            setTotal(data.reviewData.total);
+            setSubmitted(true);
+
+            // Restore selected answers
+            const restoredAnswers = {};
+            data.reviewData.answers.forEach((answer, index) => {
+              restoredAnswers[index] = answer.selected;
+            });
+            setSelectedAnswers(restoredAnswers);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching previous attempt:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    fetchPreviousAttempt();
+  }, [courseId, moduleId]);
+
+  // Reset quiz state when module changes (for retake)
+  const resetQuiz = () => {
+    setQuizStarted(true);
+    setCurrentQuestionIndex(0);
+    setSelectedAnswers({});
+    setSubmitted(false);
+    setReviewData(null);
+    setScore(0);
+    setTotal(0);
+  };
+
+  if (!module?.quiz || module.quiz.length === 0) {
     return null;
   }
 
   const handleAnswer = (questionIndex, answer) => {
-    setUserAnswers({
-      ...userAnswers,
+    if (submitted) return; // Lock after submit
+
+    setSelectedAnswers({
+      ...selectedAnswers,
       [questionIndex]: answer
     });
   };
@@ -43,26 +118,75 @@ export default function ModuleQuiz({ module, onComplete }) {
     }
   };
 
-  const handleSubmit = () => {
-    let correctCount = 0;
-    module.quiz.forEach((question, index) => {
-      if (userAnswers[index] === question.correct_answer) {
-        correctCount++;
+  /**
+   * Submit Quiz to API - Returns review data with correct answers
+   */
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+
+    try {
+      const res = await fetch('/api/quiz/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          courseId,
+          moduleId,
+          moduleIndex,
+          answers: selectedAnswers,
+          questions: module.quiz
+        })
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        setReviewData(data.answers);
+        setScore(data.score);
+        setTotal(data.total);
+        setSubmitted(true);
+
+        console.log(`Module quiz submitted:`, {
+          score: data.percentage,
+          correct: data.score,
+          total: data.total
+        });
+      } else {
+        console.error('Quiz submit failed:', data.error);
+        // Fallback to local calculation if API fails
+        let correctCount = 0;
+        module.quiz.forEach((question, index) => {
+          if (selectedAnswers[index] === question.correct_answer) {
+            correctCount++;
+          }
+        });
+        setScore(correctCount);
+        setTotal(module.quiz.length);
+        setSubmitted(true);
       }
-    });
-    setScore(correctCount);
-    setShowResults(true);
+    } catch (err) {
+      console.error('Error submitting quiz:', err);
+      // Fallback to local calculation
+      let correctCount = 0;
+      module.quiz.forEach((question, index) => {
+        if (selectedAnswers[index] === question.correct_answer) {
+          correctCount++;
+        }
+      });
+      setScore(correctCount);
+      setTotal(module.quiz.length);
+      setSubmitted(true);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleRetake = () => {
-    setUserAnswers({});
-    setCurrentQuestionIndex(0);
-    setShowResults(false);
-    setScore(0);
+    resetQuiz();
   };
 
   const currentQuestion = module.quiz[currentQuestionIndex];
   const progress = ((currentQuestionIndex + 1) / module.quiz.length) * 100;
+  const scorePercentage = total > 0 ? Math.round((score / total) * 100) : 0;
 
   // Card styles matching spec
   const cardStyle = {
@@ -73,8 +197,20 @@ export default function ModuleQuiz({ module, onComplete }) {
     padding: '24px'
   };
 
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="mt-6" style={cardStyle}>
+        <div className="flex items-center justify-center py-8">
+          <Loader2 className="w-8 h-8 animate-spin text-purple-400" />
+          <span className="ml-3 text-gray-400">Loading quiz...</span>
+        </div>
+      </div>
+    );
+  }
+
   // Start Quiz Screen
-  if (!quizStarted && !showResults) {
+  if (!quizStarted && !submitted) {
     return (
       <div className="mt-6" style={cardStyle}>
         <div className="flex items-center gap-3 mb-6">
@@ -109,24 +245,31 @@ export default function ModuleQuiz({ module, onComplete }) {
     );
   }
 
-  // Quiz Results Screen
-  if (showResults) {
-    const scorePercentage = Math.round((score / module.quiz.length) * 100);
+  // Quiz Results Screen with Review Mode
+  if (submitted) {
     return (
       <div className="mt-6" style={cardStyle}>
+        {/* Score Header */}
         <div className="flex items-center gap-3 mb-6">
           <Trophy className="w-6 h-6 text-yellow-400" />
           <h3 style={{ fontSize: '20px', fontWeight: 600 }} className="text-white">
             Quiz Complete!
           </h3>
         </div>
+
         <div className="space-y-6">
-          <div className="text-center space-y-4">
-            <div className="text-6xl font-bold text-white">
+          {/* Score Summary */}
+          <div className="text-center space-y-4 p-6 rounded-xl"
+            style={{
+              background: scorePercentage >= 70 ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)',
+              border: scorePercentage >= 70 ? '1px solid rgba(34,197,94,0.3)' : '1px solid rgba(239,68,68,0.3)'
+            }}
+          >
+            <div className={`text-6xl font-bold ${scorePercentage >= 70 ? 'text-green-400' : 'text-red-400'}`}>
               {scorePercentage}%
             </div>
             <p className="text-xl text-gray-300">
-              {score} out of {module.quiz.length} correct
+              {score} out of {total || module.quiz.length} correct
             </p>
             <p className="text-gray-400">
               {scorePercentage >= 80 ? '🎉 Excellent work!' :
@@ -135,10 +278,19 @@ export default function ModuleQuiz({ module, onComplete }) {
             </p>
           </div>
 
-          {/* Show all questions with answers */}
-          <div className="space-y-4 max-h-96 overflow-y-auto">
-            {module.quiz.map((question, index) => {
-              const isCorrect = userAnswers[index] === question.correct_answer;
+          {/* Review Answers - MANDATORY per spec */}
+          <div className="space-y-4 max-h-[500px] overflow-y-auto">
+            {(reviewData || module.quiz.map((q, i) => ({
+              question: q.question,
+              selected: selectedAnswers[i],
+              correct: q.correct_answer,
+              isCorrect: selectedAnswers[i] === q.correct_answer,
+              explanation: q.explanation,
+              options: q.options
+            }))).map((review, index) => {
+              const question = module.quiz[index];
+              const isCorrect = review.isCorrect;
+
               return (
                 <div
                   key={index}
@@ -148,39 +300,93 @@ export default function ModuleQuiz({ module, onComplete }) {
                     border: isCorrect ? '1px solid rgba(34,197,94,0.3)' : '1px solid rgba(239,68,68,0.3)'
                   }}
                 >
-                  <div className="flex items-start gap-2">
+                  {/* Question Header */}
+                  <div className="flex items-start gap-2 mb-4">
                     {isCorrect ? (
                       <CheckCircle2 className="w-5 h-5 text-green-400 mt-1 flex-shrink-0" />
                     ) : (
                       <XCircle className="w-5 h-5 text-red-400 mt-1 flex-shrink-0" />
                     )}
                     <div className="flex-1">
-                      <p className="text-white font-medium mb-2" style={{ fontSize: '16px' }}>
-                        {index + 1}. {question.question}
+                      <p className="text-white font-medium" style={{ fontSize: '16px' }}>
+                        {index + 1}. {review.question || question?.question}
                       </p>
-                      <p className="text-sm text-gray-400 mb-1">
-                        Your answer: <span className={isCorrect ? 'text-green-400' : 'text-red-400'}>
-                          {userAnswers[index]}
-                        </span>
-                      </p>
-                      {!isCorrect && (
-                        <p className="text-sm text-gray-400">
-                          Correct answer: <span className="text-green-400">{question.correct_answer}</span>
-                        </p>
-                      )}
-                      {question.explanation && (
-                        <p className="text-sm text-gray-400 mt-2 italic">
-                          💡 {question.explanation}
-                        </p>
-                      )}
                     </div>
                   </div>
+
+                  {/* Options with highlighting per spec */}
+                  <div className="space-y-2 mb-4 ml-7">
+                    {(review.options || question?.options || []).map((option, optionIndex) => {
+                      const correctAnswer = review.correct || question?.correct_answer;
+                      const selectedAnswer = review.selected || selectedAnswers[index];
+
+                      const isCorrectOption = option === correctAnswer;
+                      const isSelectedWrong = option === selectedAnswer && !isCorrect;
+
+                      // OPTION STYLES (MANDATORY per spec)
+                      let className = "p-3 rounded-xl border ";
+
+                      if (isCorrectOption) {
+                        // Correct answer = Green border
+                        className += "border-green-500 bg-green-500/10";
+                      } else if (isSelectedWrong) {
+                        // Wrong selected = Red border  
+                        className += "border-red-500 bg-red-500/10";
+                      } else {
+                        // Not selected = Neutral
+                        className += "border-white/10 bg-white/5";
+                      }
+
+                      return (
+                        <div key={optionIndex} className={className}>
+                          <div className="flex items-center gap-3">
+                            <span className={`${isCorrectOption ? 'text-green-400' :
+                              isSelectedWrong ? 'text-red-400' : 'text-gray-400'
+                              }`}>
+                              {option}
+                            </span>
+                            {isCorrectOption && (
+                              <CheckCircle2 className="w-4 h-4 text-green-400 ml-auto" />
+                            )}
+                            {isSelectedWrong && (
+                              <XCircle className="w-4 h-4 text-red-400 ml-auto" />
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Answer Summary */}
+                  <div className="ml-7 text-sm space-y-1 mb-3">
+                    <p className={isCorrect ? 'text-green-400' : 'text-red-400'}>
+                      <strong>Your answer:</strong> {review.selected || selectedAnswers[index] || 'Not answered'}
+                    </p>
+                    {!isCorrect && (
+                      <p className="text-green-400">
+                        <strong>Correct answer:</strong> {review.correct || question?.correct_answer}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Explanation Display (IMPORTANT per spec) */}
+                  {(review.explanation || question?.explanation) && (
+                    <div className="ml-7 mt-3 p-3 rounded-lg bg-blue-500/10 border border-blue-500/30">
+                      <div className="flex items-start gap-2">
+                        <Lightbulb className="w-4 h-4 text-blue-400 mt-0.5 flex-shrink-0" />
+                        <p className="text-sm text-blue-300">
+                          💡 {review.explanation || question?.explanation}
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               );
             })}
           </div>
 
-          <div className="flex gap-3 justify-center">
+          {/* Action Buttons */}
+          <div className="flex gap-3 justify-center pt-4">
             <button
               onClick={handleRetake}
               className="px-6 py-3 rounded-lg font-medium transition-colors hover:bg-white/5"
@@ -245,28 +451,28 @@ export default function ModuleQuiz({ module, onComplete }) {
             {currentQuestion.question}
           </p>
 
-          {/* Options */}
+          {/* Options - Store actual option string, not index */}
           <div className="space-y-3">
-            {currentQuestion.options.map((option) => {
-              const letter = option.charAt(0);
-              const isSelected = userAnswers[currentQuestionIndex] === letter;
+            {currentQuestion.options.map((option, idx) => {
+              const isSelected = selectedAnswers[currentQuestionIndex] === option;
 
               return (
                 <button
-                  key={option}
-                  onClick={() => handleAnswer(currentQuestionIndex, letter)}
+                  key={idx}
+                  onClick={() => handleAnswer(currentQuestionIndex, option)}
+                  disabled={submitted}
                   className="w-full text-left p-4 rounded-xl transition-all duration-200"
                   style={{
                     background: isSelected ? 'rgba(155,107,255,0.2)' : 'rgba(255,255,255,0.03)',
                     border: isSelected ? '1px solid #9B6BFF' : '1px solid rgba(255,255,255,0.04)',
                   }}
                   onMouseEnter={(e) => {
-                    if (!isSelected) {
+                    if (!isSelected && !submitted) {
                       e.currentTarget.style.background = 'rgba(255,255,255,0.08)';
                     }
                   }}
                   onMouseLeave={(e) => {
-                    if (!isSelected) {
+                    if (!isSelected && !submitted) {
                       e.currentTarget.style.background = 'rgba(255,255,255,0.03)';
                     }
                   }}
@@ -296,7 +502,8 @@ export default function ModuleQuiz({ module, onComplete }) {
           {currentQuestionIndex < module.quiz.length - 1 ? (
             <button
               onClick={handleNext}
-              className="px-6 py-3 rounded-lg font-medium text-white transition-colors hover:opacity-90"
+              disabled={!selectedAnswers[currentQuestionIndex]}
+              className="px-6 py-3 rounded-lg font-medium text-white transition-colors hover:opacity-90 disabled:opacity-50"
               style={{ background: '#9B6BFF' }}
             >
               Next Question
@@ -304,10 +511,18 @@ export default function ModuleQuiz({ module, onComplete }) {
           ) : (
             <button
               onClick={handleSubmit}
-              className="px-6 py-3 rounded-lg font-medium text-white transition-colors hover:opacity-90"
+              disabled={isSubmitting}
+              className="px-6 py-3 rounded-lg font-medium text-white transition-colors hover:opacity-90 disabled:opacity-50"
               style={{ background: '#22C55E' }}
             >
-              Submit Quiz
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin inline mr-2" />
+                  Submitting...
+                </>
+              ) : (
+                'Submit Quiz'
+              )}
             </button>
           )}
         </div>

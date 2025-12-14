@@ -345,28 +345,6 @@ export default function CreateFilePage() {
                                             <span className="text-gray-300">{extractionStatus}</span>
                                         </div>
                                     )}
-
-                                    <div className="p-4 rounded-xl bg-[#0f0f17] border border-white/5">
-                                        <h4 className="text-white text-sm font-medium mb-2">Supported Sources</h4>
-                                        <ul className="text-sm text-gray-400 space-y-1.5">
-                                            <li className="flex items-center gap-2">
-                                                <span className="w-1.5 h-1.5 rounded-full bg-green-400"></span>
-                                                Blog posts & articles
-                                            </li>
-                                            <li className="flex items-center gap-2">
-                                                <span className="w-1.5 h-1.5 rounded-full bg-green-400"></span>
-                                                Documentation pages
-                                            </li>
-                                            <li className="flex items-center gap-2">
-                                                <span className="w-1.5 h-1.5 rounded-full bg-green-400"></span>
-                                                Tutorial websites
-                                            </li>
-                                            <li className="flex items-center gap-2">
-                                                <span className="w-1.5 h-1.5 rounded-full bg-yellow-400"></span>
-                                                Some sites may block extraction
-                                            </li>
-                                        </ul>
-                                    </div>
                                 </div>
                             )}
 

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { courses, chapters, users, courseAnalytics } from '@/lib/db/schema';
-import { eq, sql } from 'drizzle-orm';
+import { courses, chapters, users, moduleProgress } from '@/lib/db/schema';
+import { eq, sql, and } from 'drizzle-orm';
 import { auth, currentUser } from '@clerk/nextjs/server';
 import { validateYouTubeUrls, normalizeYouTubeUrls } from '@/lib/utils/youtube';
 import { generateCategoryThumbnail } from '@/lib/utils/categoryThumbnails';
@@ -43,32 +43,46 @@ export async function GET() {
       .where(eq(courses.userId, dbUserId))
       .orderBy(courses.createdAt);
 
-    // Fetch completion data for all courses
-    let analyticsData = [];
+    // Fetch module progress for all user's courses
+    let allProgress = [];
     try {
-      analyticsData = await db
+      allProgress = await db
         .select()
-        .from(courseAnalytics)
-        .where(eq(courseAnalytics.userId, dbUserId));
+        .from(moduleProgress)
+        .where(
+          and(
+            eq(moduleProgress.userId, dbUserId),
+            eq(moduleProgress.isCompleted, true)
+          )
+        );
     } catch (e) {
       // Table might not exist yet
+      console.log('Could not fetch module progress:', e.message);
     }
 
-    // Map analytics to courses
-    const analyticsMap = {};
-    analyticsData.forEach(a => {
-      analyticsMap[a.courseId] = a;
+    // Group completed modules by courseId
+    const progressByCourse = {};
+    allProgress.forEach(p => {
+      if (!progressByCourse[p.courseId]) {
+        progressByCourse[p.courseId] = new Set();
+      }
+      progressByCourse[p.courseId].add(p.moduleId);
     });
 
     // Add completion data to courses
     const coursesWithProgress = userCourses.map(course => {
-      const analytics = analyticsMap[course.id];
+      const completedSet = progressByCourse[course.id] || new Set();
+      const completedCount = completedSet.size;
+      const totalModules = course.modules?.length || course.chapterCount || 5;
+      const progressPercentage = totalModules > 0
+        ? Math.round((completedCount / totalModules) * 100)
+        : 0;
+
       return {
         ...course,
-        completedModules: analytics?.modulesCompleted || 0,
-        totalModules: analytics?.totalModules || course.chapterCount || 0,
-        progressPercentage: analytics?.progressPercentage || 0,
-        lastAccessedAt: analytics?.lastAccessedAt || null,
+        completedModules: completedCount,
+        totalModules: totalModules,
+        progressPercentage: progressPercentage,
       };
     });
 

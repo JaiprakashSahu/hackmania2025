@@ -20,9 +20,9 @@ export default function DifficultyButtons({ value, onChange }) {
                         role="radio"
                         aria-checked={selected}
                         tabIndex={0}
-                        className={`flex-1 py-3.5 px-4 rounded-xl text-sm font-medium transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#9B6BFF]/50 ${selected
-                                ? 'bg-[#9B6BFF]/20 border-2 border-[#9B6BFF] text-white shadow-[0_8px_30px_rgba(155,107,255,0.15)]'
-                                : 'bg-[#14151C] border border-white/10 text-white/70 hover:border-white/20 hover:text-white'
+                        className={`flex-1 py-3.5 px-4 rounded-xl text-sm font-medium transition-all focus:outline-none ${selected
+                            ? 'bg-[#14151C] border border-[#9B6BFF]/40 text-white'
+                            : 'bg-[#14151C] border border-white/10 text-white/70 hover:border-white/20 hover:text-white'
                             }`}
                         whileTap={{ scale: 0.97 }}
                         whileHover={{ scale: 1.02 }}
