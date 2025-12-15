@@ -16,7 +16,7 @@ export default function ChatTutor({ courseId, courseTitle }) {
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [courseInfo, setCourseInfo] = useState(null);
-  
+
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -132,15 +132,15 @@ export default function ChatTutor({ courseId, courseTitle }) {
     return (
       <motion.button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 z-50 w-16 h-16 bg-gradient-to-br from-[#f87171] to-[#fca5a5] rounded-full shadow-2xl flex items-center justify-center hover:scale-110 transition-transform duration-300"
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.9 }}
+        className="fixed bottom-6 right-6 z-50 w-14 h-14 bg-[#9B6BFF] rounded-full shadow-lg shadow-[#9B6BFF]/20 flex items-center justify-center hover:bg-[#8A5AEE] transition-colors"
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
       >
-        <MessageCircle className="w-7 h-7 text-white" />
+        <MessageCircle className="w-6 h-6 text-white" />
         <motion.div
-          className="absolute -top-1 -right-1 w-4 h-4 bg-[#10b981] rounded-full border-2 border-white"
+          className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-green-400 rounded-full border-2 border-[#0f0f17]"
           animate={{ scale: [1, 1.2, 1] }}
           transition={{ duration: 2, repeat: Infinity }}
         />
@@ -151,70 +151,67 @@ export default function ChatTutor({ courseId, courseTitle }) {
   return (
     <AnimatePresence>
       <motion.div
-        initial={{ opacity: 0, y: 100, scale: 0.8 }}
-        animate={{ 
-          opacity: 1, 
-          y: 0, 
+        initial={{ opacity: 0, y: 20, scale: 0.95 }}
+        animate={{
+          opacity: 1,
+          y: 0,
           scale: 1,
-          height: isMinimized ? '60px' : '600px'
+          height: isMinimized ? '56px' : '520px'
         }}
-        exit={{ opacity: 0, y: 100, scale: 0.8 }}
-        className="fixed bottom-6 right-6 z-50 w-full max-w-md transition-all duration-300"
+        exit={{ opacity: 0, y: 20, scale: 0.95 }}
+        className="fixed bottom-6 right-6 z-50 w-full max-w-sm"
       >
-        <Card className="border-0 bg-black/98 backdrop-blur-xl shadow-2xl border-[#f87171]/20 overflow-hidden">
+        <div className="bg-[#1c1c29] border border-white/10 rounded-2xl shadow-lg overflow-hidden">
           {/* Header */}
-          <CardHeader className="border-b border-[#f87171]/20 p-4">
+          <div className="border-b border-white/10 p-3">
             <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-[#f87171] to-[#fca5a5] rounded-full flex items-center justify-center shadow-lg">
-                  <Sparkles className="w-5 h-5 text-white" />
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 bg-[#9B6BFF]/20 rounded-xl flex items-center justify-center">
+                  <Sparkles className="w-4 h-4 text-[#9B6BFF]" />
                 </div>
                 <div>
-                  <CardTitle className="text-lg text-white">AI Tutor</CardTitle>
-                  <p className="text-xs text-white/60 truncate max-w-[200px]">
+                  <h3 className="text-sm font-medium text-white">AI Tutor</h3>
+                  <p className="text-xs text-white/40 truncate max-w-[160px]">
                     {courseTitle || 'Course Assistant'}
                   </p>
                 </div>
               </div>
-              <div className="flex items-center space-x-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
+              <div className="flex items-center gap-1">
+                <button
                   onClick={() => setIsMinimized(!isMinimized)}
-                  className="text-white/70 hover:text-white hover:bg-white/10 w-8 h-8 p-0"
+                  className="p-1.5 text-white/50 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
                 >
                   {isMinimized ? <Maximize2 className="w-4 h-4" /> : <Minimize2 className="w-4 h-4" />}
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
+                </button>
+                <button
                   onClick={() => setIsOpen(false)}
-                  className="text-white/70 hover:text-white hover:bg-red-500/20 w-8 h-8 p-0"
+                  className="p-1.5 text-white/50 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
                 >
                   <X className="w-4 h-4" />
-                </Button>
+                </button>
               </div>
             </div>
-          </CardHeader>
+          </div>
 
           {!isMinimized && (
             <>
               {/* Messages */}
-              <CardContent className="p-4 h-[420px] overflow-y-auto custom-scrollbar">
+              <div className="p-4 h-[360px] overflow-y-auto bg-[#0f0f17]">
                 <div className="space-y-4">
                   {messages.length === 0 ? (
-                    <div className="text-center py-8">
-                      <Bot className="w-12 h-12 text-[#f87171] mx-auto mb-4" />
-                      <p className="text-white/70 text-sm mb-4">
-                        Start a conversation with your AI tutor!
+                    <div className="text-center py-6">
+                      <div className="w-12 h-12 bg-[#9B6BFF]/10 rounded-xl flex items-center justify-center mx-auto mb-3">
+                        <Bot className="w-6 h-6 text-[#9B6BFF]" />
+                      </div>
+                      <p className="text-white/50 text-sm mb-4">
+                        Ask me anything about this course!
                       </p>
                       <div className="space-y-2">
-                        <p className="text-xs text-white/50">Try asking:</p>
                         {suggestedQuestions.map((question, idx) => (
                           <button
                             key={idx}
                             onClick={() => setInputMessage(question)}
-                            className="block w-full text-left px-3 py-2 text-xs text-white/70 bg-white/5 hover:bg-white/10 rounded-lg border border-white/10 hover:border-[#f87171]/50 transition-all"
+                            className="block w-full text-left px-3 py-2 text-xs text-white/60 bg-[#1c1c29] hover:bg-[#252535] rounded-lg border border-white/5 hover:border-[#9B6BFF]/30 transition-all"
                           >
                             {question}
                           </button>
@@ -227,41 +224,38 @@ export default function ChatTutor({ courseId, courseTitle }) {
                         key={index}
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: index * 0.1 }}
                         className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                       >
-                        <div className={`flex items-start space-x-2 max-w-[85%] ${msg.role === 'user' ? 'flex-row-reverse space-x-reverse' : ''}`}>
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                            msg.role === 'user' 
-                              ? 'bg-gradient-to-br from-[#f87171] to-[#fca5a5]' 
-                              : 'bg-gradient-to-br from-[#f87171] to-[#fca5a5]'
-                          }`}>
+                        <div className={`flex items-start gap-2 max-w-[85%] ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
+                          <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${msg.role === 'user'
+                              ? 'bg-[#9B6BFF]'
+                              : 'bg-[#9B6BFF]/20'
+                            }`}>
                             {msg.role === 'user' ? (
-                              <User className="w-4 h-4 text-white" />
+                              <User className="w-3.5 h-3.5 text-white" />
                             ) : (
-                              <Bot className="w-4 h-4 text-white" />
+                              <Bot className="w-3.5 h-3.5 text-[#9B6BFF]" />
                             )}
                           </div>
-                          <div className={`rounded-2xl px-4 py-3 ${
-                            msg.role === 'user'
-                              ? 'bg-gradient-to-br from-[#f87171] to-[#fca5a5] text-white'
+                          <div className={`rounded-xl px-3 py-2 ${msg.role === 'user'
+                              ? 'bg-[#9B6BFF] text-white'
                               : msg.isError
-                              ? 'bg-[#f87171]/20 border border-[#f87171]/30 text-red-200'
-                              : 'bg-black border border-white/10 text-white'
-                          }`}>
+                                ? 'bg-red-500/10 border border-red-500/20 text-red-300'
+                                : 'bg-[#1c1c29] border border-white/10 text-white/80'
+                            }`}>
                             <div className="text-sm prose prose-invert prose-sm max-w-none">
                               <ReactMarkdown
                                 remarkPlugins={[remarkGfm]}
                                 components={{
-                                  p: ({node, ...props}) => <p className="mb-2 last:mb-0" {...props} />,
-                                  strong: ({node, ...props}) => <strong className="font-bold text-[#f87171]" {...props} />,
-                                  code: ({node, ...props}) => <code className="bg-black/30 px-1 py-0.5 rounded text-xs" {...props} />
+                                  p: ({ node, ...props }) => <p className="mb-2 last:mb-0" {...props} />,
+                                  strong: ({ node, ...props }) => <strong className="font-semibold text-[#9B6BFF]" {...props} />,
+                                  code: ({ node, ...props }) => <code className="bg-black/30 px-1 py-0.5 rounded text-xs" {...props} />
                                 }}
                               >
                                 {msg.content}
                               </ReactMarkdown>
                             </div>
-                            <p className="text-[10px] text-white/40 mt-1">
+                            <p className="text-[10px] text-white/30 mt-1">
                               {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                             </p>
                           </div>
@@ -273,54 +267,54 @@ export default function ChatTutor({ courseId, courseTitle }) {
                     <motion.div
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      className="flex items-start space-x-2"
+                      className="flex items-start gap-2"
                     >
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#f87171] to-[#fca5a5] flex items-center justify-center">
-                        <Bot className="w-4 h-4 text-white" />
+                      <div className="w-7 h-7 rounded-lg bg-[#9B6BFF]/20 flex items-center justify-center">
+                        <Bot className="w-3.5 h-3.5 text-[#9B6BFF]" />
                       </div>
-                      <div className="bg-white/10 border border-white/20 rounded-2xl px-4 py-3">
-                        <div className="flex items-center space-x-2">
-                          <Loader2 className="w-4 h-4 text-[#f87171] animate-spin" />
-                          <span className="text-sm text-white/70">Thinking...</span>
+                      <div className="bg-[#1c1c29] border border-white/10 rounded-xl px-3 py-2">
+                        <div className="flex items-center gap-2">
+                          <Loader2 className="w-3.5 h-3.5 text-[#9B6BFF] animate-spin" />
+                          <span className="text-sm text-white/50">Thinking...</span>
                         </div>
                       </div>
                     </motion.div>
                   )}
                   <div ref={messagesEndRef} />
                 </div>
-              </CardContent>
+              </div>
 
               {/* Input */}
-              <div className="p-4 border-t border-[#f87171]/20">
-                <div className="flex items-center space-x-2">
-                  <Input
+              <div className="p-3 border-t border-white/10 bg-[#1c1c29]">
+                <div className="flex items-center gap-2">
+                  <input
                     ref={inputRef}
                     value={inputMessage}
                     onChange={(e) => setInputMessage(e.target.value)}
                     onKeyPress={handleKeyPress}
-                    placeholder="Ask me anything about this course..."
+                    placeholder="Ask me anything..."
                     disabled={isLoading}
-                    className="flex-1 bg-black border-white/10 text-white placeholder-white/50 focus:border-[#f87171]"
+                    className="flex-1 bg-[#0f0f17] border border-white/10 rounded-xl px-3 py-2 text-sm text-white placeholder-white/30 focus:outline-none focus:border-[#9B6BFF]/50 transition-colors"
                   />
-                  <Button
+                  <button
                     onClick={sendMessage}
                     disabled={!inputMessage.trim() || isLoading}
-                    className="bg-gradient-to-r from-[#f87171] to-[#fca5a5] hover:from-[#fca5a5] hover:to-[#fecaca] w-10 h-10 p-0"
+                    className="w-9 h-9 bg-[#9B6BFF] hover:bg-[#8A5AEE] disabled:opacity-50 disabled:hover:bg-[#9B6BFF] rounded-xl flex items-center justify-center transition-colors"
                   >
                     {isLoading ? (
-                      <Loader2 className="w-5 h-5 animate-spin" />
+                      <Loader2 className="w-4 h-4 text-white animate-spin" />
                     ) : (
-                      <Send className="w-5 h-5" />
+                      <Send className="w-4 h-4 text-white" />
                     )}
-                  </Button>
+                  </button>
                 </div>
-                <p className="text-[10px] text-white/40 mt-2 text-center">
+                <p className="text-[10px] text-white/30 mt-2 text-center">
                   AI may make mistakes. Verify important information.
                 </p>
               </div>
             </>
           )}
-        </Card>
+        </div>
       </motion.div>
     </AnimatePresence>
   );
