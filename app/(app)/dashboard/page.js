@@ -1,14 +1,16 @@
 import { currentUser } from '@clerk/nextjs/server';
 import DashboardClient from './components/DashboardClient';
-import { db } from '@/lib/db';
+import { db, safeQuery } from '@/lib/db';
 import { courses, chapters, moduleProgress, users } from '@/lib/db/schema';
 import { eq, desc, sql, count } from 'drizzle-orm';
 import { redirect } from 'next/navigation';
 
 async function getAnalytics(clerkId) {
 	try {
-		// Get internal user ID from Clerk ID
-		const dbUser = await db.select().from(users).where(eq(users.clerkId, clerkId)).limit(1);
+		// Get internal user ID from Clerk ID with retry logic for connection issues
+		const dbUser = await safeQuery(() =>
+			db.select().from(users).where(eq(users.clerkId, clerkId)).limit(1)
+		);
 
 		if (!dbUser || dbUser.length === 0) {
 			console.log("User not found in database, returning empty analytics");
@@ -17,7 +19,9 @@ async function getAnalytics(clerkId) {
 
 		const userId = dbUser[0].id; // Internal UUID
 
-		const userCourses = await db.select().from(courses).where(eq(courses.userId, userId));
+		const userCourses = await safeQuery(() =>
+			db.select().from(courses).where(eq(courses.userId, userId))
+		);
 		const totalCourses = userCourses.length;
 
 		// Calculate total chapters (from courses.chapterCount)
@@ -45,12 +49,14 @@ async function getAnalytics(clerkId) {
 		// Calculate Completion Rate (Mocked for now as it requires complex joins on moduleProgress)
 		// Ideally: count(completed_modules) / count(total_modules)
 		// Using a simpler query for speed in this refactor step:
-		const completedModules = await db
-			.select({ count: count() })
-			.from(moduleProgress)
-			.where(
-				sql`${moduleProgress.userId} = ${userId} AND ${moduleProgress.isCompleted} = true`
-			);
+		const completedModules = await safeQuery(() =>
+			db
+				.select({ count: count() })
+				.from(moduleProgress)
+				.where(
+					sql`${moduleProgress.userId} = ${userId} AND ${moduleProgress.isCompleted} = true`
+				)
+		);
 
 		const completedCount = completedModules[0]?.count || 0;
 		const totalModules = totalChapters; // Approximation

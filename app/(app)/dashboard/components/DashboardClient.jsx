@@ -98,17 +98,17 @@ export default function DashboardClient({ analytics, userFirstName }) {
             className="min-h-screen"
             style={{ background: 'var(--bg)' }}
         >
-            <div className="max-w-7xl mx-auto px-6 py-8">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-8">
 
                 {/* Header */}
-                <div className="flex items-center justify-between mb-8">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 sm:mb-8">
                     <div>
-                        <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                        <p className="text-xs sm:text-sm" style={{ color: 'var(--text-secondary)' }}>
                             Hello, {userFirstName}
                         </p>
-                        <h1 className="text-3xl font-bold text-white">Welcome to Your Dashboard</h1>
+                        <h1 className="text-xl sm:text-3xl font-bold text-white">Welcome to Your Dashboard</h1>
                     </div>
-                    <div className="relative">
+                    <div className="relative hidden sm:block">
                         <input
                             type="text"
                             placeholder="Search"
@@ -122,28 +122,28 @@ export default function DashboardClient({ analytics, userFirstName }) {
                 </div>
 
                 {/* Main Grid */}
-                <div className="grid grid-cols-12 gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
 
                     {/* Large Analytics Card */}
-                    <div className="col-span-8">
+                    <div className="lg:col-span-8">
                         <Card>
-                            <div className="flex gap-8">
+                            <div className="flex flex-col sm:flex-row gap-6 sm:gap-8">
                                 <div className="flex-1">
-                                    <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>Total Words Generated</p>
-                                    <p className="text-4xl font-bold text-white mt-2 mb-8">
+                                    <p className="text-xs sm:text-sm" style={{ color: 'var(--text-secondary)' }}>Total Words Generated</p>
+                                    <p className="text-2xl sm:text-4xl font-bold text-white mt-2 mb-6 sm:mb-8">
                                         {formatNumber(totalWords)}
                                     </p>
 
-                                    <div className="space-y-5">
+                                    <div className="space-y-4 sm:space-y-5">
                                         {categoryDistribution.length > 0 ? (
                                             categoryDistribution.slice(0, 3).map((cat, i) => {
                                                 const colors = ['#FFA066', '#9B6BFF', '#FF6AC1'];
                                                 return (
-                                                    <div key={i} className="flex items-center gap-4">
-                                                        <span className="text-sm w-28 truncate" style={{ color: 'var(--text-secondary)' }}>
+                                                    <div key={i} className="flex items-center gap-2 sm:gap-4">
+                                                        <span className="text-xs sm:text-sm w-20 sm:w-28 truncate" style={{ color: 'var(--text-secondary)' }}>
                                                             {cat.name}
                                                         </span>
-                                                        <span className="text-sm font-medium text-white w-10">{cat.percentage}%</span>
+                                                        <span className="text-xs sm:text-sm font-medium text-white w-8 sm:w-10">{cat.percentage}%</span>
                                                         <div className="flex-1">
                                                             <ProgressBar value={cat.percentage} color={colors[i % colors.length]} />
                                                         </div>
@@ -151,8 +151,8 @@ export default function DashboardClient({ analytics, userFirstName }) {
                                                 );
                                             })
                                         ) : (
-                                            <div className="text-center py-8">
-                                                <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                                            <div className="text-center py-6 sm:py-8">
+                                                <p className="text-xs sm:text-sm" style={{ color: 'var(--text-secondary)' }}>
                                                     No courses yet. Create your first course to see category breakdown.
                                                 </p>
                                                 <Link href="/create-course">
@@ -165,11 +165,18 @@ export default function DashboardClient({ analytics, userFirstName }) {
                                     </div>
                                 </div>
 
-                                <div className="flex items-center justify-center">
+                                <div className="flex items-center justify-center py-4 sm:py-0">
                                     {categoryDistribution.length > 0 ? (
-                                        <DonutChart data={donutData} size={180} />
+                                        <>
+                                            <div className="sm:hidden">
+                                                <DonutChart data={donutData} size={140} />
+                                            </div>
+                                            <div className="hidden sm:block">
+                                                <DonutChart data={donutData} size={180} />
+                                            </div>
+                                        </>
                                     ) : (
-                                        <div className="w-[180px] h-[180px] rounded-full flex items-center justify-center" style={{ background: 'var(--card)', border: '2px dashed var(--border)' }}>
+                                        <div className="w-[140px] h-[140px] sm:w-[180px] sm:h-[180px] rounded-full flex items-center justify-center" style={{ background: 'var(--card)', border: '2px dashed var(--border)' }}>
                                             <span className="text-xs text-center" style={{ color: 'var(--text-secondary)' }}>No data</span>
                                         </div>
                                     )}
@@ -179,39 +186,39 @@ export default function DashboardClient({ analytics, userFirstName }) {
                     </div>
 
                     {/* Right Side Cards */}
-                    <div className="col-span-4 space-y-4">
+                    <div className="lg:col-span-4 grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-3 sm:gap-4">
                         {rightCards.map((card, i) => (
-                            <Card key={i} className="p-4">
-                                <div className="flex items-start justify-between mb-3">
-                                    <div>
-                                        <p className="font-medium text-white">{card.title}</p>
-                                        <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>{card.subtitle}</p>
+                            <Card key={i} className="p-3 sm:p-4">
+                                <div className="flex items-start justify-between mb-2 sm:mb-3">
+                                    <div className="flex-1 min-w-0">
+                                        <p className="font-medium text-white text-sm sm:text-base truncate">{card.title}</p>
+                                        <p className="text-xs truncate" style={{ color: 'var(--text-secondary)' }}>{card.subtitle}</p>
                                     </div>
                                     <div
-                                        className="w-10 h-10 rounded-xl flex items-center justify-center"
+                                        className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center flex-shrink-0 ml-2"
                                         style={{ background: `${card.color}15` }}
                                     >
-                                        <card.icon className="w-5 h-5" style={{ color: card.color }} strokeWidth={1.5} />
+                                        <card.icon className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: card.color }} strokeWidth={1.5} />
                                     </div>
                                 </div>
-                                <p className="text-sm text-white mb-3">{card.progress}%</p>
+                                <p className="text-xs sm:text-sm text-white mb-2 sm:mb-3">{card.progress}%</p>
                                 <ProgressBar value={card.progress} color={card.color} />
                             </Card>
                         ))}
                     </div>
 
                     {/* Stats Cards */}
-                    <div className="col-span-12 grid grid-cols-3 gap-6">
+                    <div className="lg:col-span-12 grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-6">
                         {stats.map((stat, i) => (
-                            <Card key={i} className="p-5">
+                            <Card key={i} className="p-4 sm:p-5">
                                 <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>{stat.label}</p>
-                                <div className="flex items-baseline gap-2 mt-1 mb-4">
-                                    <p className="text-2xl font-bold text-white">{stat.value}</p>
+                                <div className="flex items-baseline gap-2 mt-1 mb-3 sm:mb-4">
+                                    <p className="text-xl sm:text-2xl font-bold text-white">{stat.value}</p>
                                     <span className={`text-xs ${weeklyGrowth >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                                         {stat.growth}
                                     </span>
                                 </div>
-                                <div className="h-12 flex items-end gap-1">
+                                <div className="h-10 sm:h-12 flex items-end gap-1">
                                     {[30, 40, 35, 45, 50, 55, 60].map((h, j) => (
                                         <div
                                             key={j}
@@ -232,24 +239,24 @@ export default function DashboardClient({ analytics, userFirstName }) {
                         <motion.div
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="col-span-12"
+                            className="lg:col-span-12"
                         >
                             <div
-                                className="rounded-2xl p-6 relative flex items-center justify-between"
+                                className="rounded-xl sm:rounded-2xl p-4 sm:p-6 relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
                                 style={{ background: 'var(--accent-purple)' }}
                             >
                                 <button
                                     onClick={handleDismissBanner}
-                                    className="absolute top-4 right-4 text-white/80 hover:text-white"
+                                    className="absolute top-3 right-3 sm:top-4 sm:right-4 text-white/80 hover:text-white"
                                 >
-                                    <X className="w-5 h-5" />
+                                    <X className="w-4 h-4 sm:w-5 sm:h-5" />
                                 </button>
-                                <p className="text-white font-medium max-w-lg">
+                                <p className="text-sm sm:text-base text-white font-medium max-w-lg pr-6">
                                     Create AI-powered courses in seconds! Transform your ideas into professional learning experiences.
                                 </p>
-                                <Link href="/create-course">
+                                <Link href="/create-course" className="w-full sm:w-auto">
                                     <button
-                                        className="px-6 py-2 rounded-xl font-medium transition-colors"
+                                        className="w-full sm:w-auto px-4 sm:px-6 py-2 rounded-xl font-medium transition-colors text-sm sm:text-base"
                                         style={{ background: 'var(--card)', color: 'white' }}
                                     >
                                         Create Course
