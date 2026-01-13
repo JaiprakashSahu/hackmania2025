@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import Groq from 'groq-sdk';
 
+// Prevent static generation - this route must be dynamic
+export const dynamic = 'force-dynamic';
+
 // Lazy-load GROQ client to avoid build-time initialization
 function getGroqClient() {
     if (!process.env.GROQ_API_KEY) {
