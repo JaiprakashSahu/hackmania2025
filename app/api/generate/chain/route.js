@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import { db, courses, modules, quizzes } from '@/lib/db';
+import { db, courses, chapters, quizzes } from '@/lib/db';  // ✅ Fixed: use 'chapters' not 'modules'
 import { eq } from 'drizzle-orm';
 import { buildSystemPrompt } from '@/lib/prompts/difficulty-prompts';
 
@@ -40,7 +40,7 @@ async function callGroq(messages, model = 'llama-3.3-70b-versatile', temperature
 // Step 1: Generate course outline
 async function generateOutline(topic, difficulty, persona) {
   const systemPrompt = buildSystemPrompt(difficulty, persona);
-  
+
   const messages = [
     {
       role: 'system',
@@ -71,7 +71,7 @@ Output *only* a valid JSON object in this exact format:
   ];
 
   const response = await callGroq(messages, 'llama-3.3-70b-versatile', 0.8);
-  
+
   // Extract JSON from response (handle markdown code blocks)
   let jsonStr = response.trim();
   if (jsonStr.startsWith('```json')) {
@@ -79,14 +79,14 @@ Output *only* a valid JSON object in this exact format:
   } else if (jsonStr.startsWith('```')) {
     jsonStr = jsonStr.replace(/```\n?/g, '');
   }
-  
+
   return JSON.parse(jsonStr);
 }
 
 // Step 2: Generate detailed module content
 async function generateModuleContent(moduleTitle, moduleDescription, courseTopic, difficulty, persona) {
   const systemPrompt = buildSystemPrompt(difficulty, persona);
-  
+
   const messages = [
     {
       role: 'system',
@@ -163,7 +163,7 @@ Output *only* a valid JSON object in this exact format (no markdown, no code blo
   ];
 
   const response = await callGroq(messages, 'llama-3.3-70b-versatile', 0.6);
-  
+
   // Clean and parse JSON
   let jsonStr = response.trim();
   if (jsonStr.startsWith('```json')) {
@@ -171,7 +171,7 @@ Output *only* a valid JSON object in this exact format (no markdown, no code blo
   } else if (jsonStr.startsWith('```')) {
     jsonStr = jsonStr.replace(/```\n?/g, '');
   }
-  
+
   return JSON.parse(jsonStr);
 }
 
@@ -179,15 +179,15 @@ Output *only* a valid JSON object in this exact format (no markdown, no code blo
 export async function POST(req) {
   try {
     const { userId } = await auth();
-    
+
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const body = await req.json();
-    const { 
-      topic, 
-      difficulty = 'intermediate', 
+    const {
+      topic,
+      difficulty = 'intermediate',
       persona = null,
       includeQuiz = true,
       sourceText = null // Optional: if generating from extracted text
@@ -205,12 +205,12 @@ export async function POST(req) {
     // STEP 1: Generate course outline
     console.log('📋 Step 1: Generating course outline...');
     const outline = await generateOutline(topic, difficulty, persona);
-    
+
     console.log(`✅ Outline generated: ${outline.title} with ${outline.modules.length} modules`);
 
     // STEP 2: Create course and module records in database
     console.log('💾 Step 2: Creating database records...');
-    
+
     const [course] = await db.insert(courses).values({
       userId,
       title: outline.title,
@@ -230,7 +230,7 @@ export async function POST(req) {
     // Create placeholder module records
     const moduleRecords = await Promise.all(
       outline.modules.map((mod, index) =>
-        db.insert(modules).values({
+        db.insert(chapters).values({
           courseId,
           title: mod.title,
           description: mod.description,
@@ -245,10 +245,10 @@ export async function POST(req) {
 
     // STEP 3: Generate content and quizzes for each module in parallel
     console.log('🎨 Step 3: Generating module content and quizzes in parallel...');
-    
+
     const moduleGenerationPromises = moduleRecords.map(async ([module], index) => {
       console.log(`  📝 Generating content for module ${index + 1}: ${module.title}`);
-      
+
       // Generate content and quiz in parallel
       const [content, quizData] = await Promise.all([
         generateModuleContent(
@@ -260,23 +260,23 @@ export async function POST(req) {
         ),
         includeQuiz
           ? generateModuleQuiz(
-              module.title,
-              outline.modules[index].description, // Use description as preview
-              difficulty
-            ).catch(err => {
-              console.error(`Quiz generation failed for module ${index + 1}:`, err);
-              return null;
-            })
+            module.title,
+            outline.modules[index].description, // Use description as preview
+            difficulty
+          ).catch(err => {
+            console.error(`Quiz generation failed for module ${index + 1}:`, err);
+            return null;
+          })
           : Promise.resolve(null)
       ]);
 
       // Update module with content
-      await db.update(modules)
-        .set({ 
+      await db.update(chapters)  // ✅ Fixed: use chapters table
+        .set({
           content,
-          videoUrls: [] 
+          videoUrls: []
         })
-        .where(eq(modules.id, module.id));
+        .where(eq(chapters.id, module.id));
 
       // Create quiz record if quiz was generated
       if (quizData && quizData.questions) {
@@ -324,10 +324,10 @@ export async function POST(req) {
   } catch (error) {
     console.error('❌ Chain generation error:', error);
     return NextResponse.json(
-      { 
+      {
         error: 'Failed to generate course',
         message: error.message,
-        details: error.stack 
+        details: error.stack
       },
       { status: 500 }
     );

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs';
+import { auth } from '@clerk/nextjs/server';  // ✅ Correct App Router import
 import { db } from '@/lib/db';
 import { userProgress } from '@/lib/db/schema';
 import { eq, and } from 'drizzle-orm';
@@ -15,23 +15,23 @@ export async function POST(request) {
   try {
     // Get authenticated user
     const { userId } = auth();
-    
+
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { 
-      chapterId, 
-      quizScore, 
-      totalQuestions, 
-      correctAnswers, 
-      timeSpent 
+    const {
+      chapterId,
+      quizScore,
+      totalQuestions,
+      correctAnswers,
+      timeSpent
     } = await request.json();
 
     // Validate required fields
     if (!chapterId || quizScore === undefined || !totalQuestions || correctAnswers === undefined) {
-      return NextResponse.json({ 
-        error: 'Missing required fields: chapterId, quizScore, totalQuestions, correctAnswers' 
+      return NextResponse.json({
+        error: 'Missing required fields: chapterId, quizScore, totalQuestions, correctAnswers'
       }, { status: 400 });
     }
 
@@ -52,7 +52,7 @@ export async function POST(request) {
     if (existingProgress && existingProgress.length > 0) {
       // Update existing progress (retake scenario)
       const currentProgress = existingProgress[0];
-      
+
       [savedProgress] = await db
         .update(userProgress)
         .set({
@@ -111,7 +111,7 @@ export async function POST(request) {
 export async function GET(request) {
   try {
     const { userId } = auth();
-    
+
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }

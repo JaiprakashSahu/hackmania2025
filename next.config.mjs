@@ -9,6 +9,10 @@ const nextConfig = {
     ],
   },
   serverExternalPackages: ["pdf-parse", "tesseract.js"],
+  // Workaround for Html import error in Next.js 15
+  typescript: {
+    ignoreBuildErrors: false,
+  },
 };
 
 export default nextConfig;
