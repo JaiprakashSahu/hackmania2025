@@ -127,7 +127,7 @@ STYLE: Write for advanced learners. Use academic language, discuss trade-offs, e
             console.log(`   📄 Generating module ${i + 1}/${moduleCount || 5}: ${moduleTitle}...`);
 
             // STEP 1: Generate content for THIS module only (SIMPLIFIED)
-            const moduleContentPrompt = `Generate educational content for students.
+            const moduleContentPrompt = `Create engaging educational content for students learning about this topic.
 
 TOPIC: ${topic}
 MODULE: ${moduleTitle} (${i + 1} of ${moduleCount || 5})
@@ -135,30 +135,40 @@ LEVEL: ${difficulty || 'Intermediate'}
 
 ${selectedGuidelines}
 
-Write content with these sections:
+CRITICAL WRITING GUIDELINES:
+• Write like a human expert, NOT an AI - use natural language and varied sentence structures
+• Avoid AI clichés: "delve into", "dive deep", "it's worth noting", "in today's world", "revolutionize"
+• Use specific, concrete examples - NOT generic placeholders
+• Vary your vocabulary - don't repeat the same phrases
+• Include memorable insights and "aha moments" 
+• Use storytelling when appropriate to make concepts stick
+• Write with personality and expertise, not bland formality
+• Make smooth, natural transitions between sections
+
+Write content organized into these sections:
 
 DESCRIPTION:
-A brief overview of what students will learn.
+A compelling preview that hooks the learner's interest (2-3 sentences, not a generic statement)
 
 INTRODUCTION:
-Explain what this topic is and why it matters.
+Start with a relatable scenario or question that shows why this matters. Explain the "what" and "why" in a way that builds curiosity. Share a fresh perspective or interesting context that most tutorials miss.
 
 CORE CONCEPTS:
-Explain the key concepts clearly.
+Break down 2-4 key concepts using clear explanations. Use specific examples, analogies (when helpful), and practical demonstrations. Connect abstract ideas to tangible outcomes. Show the "how it works" with precision and clarity.
 
 REAL-WORLD EXAMPLES:
-Give practical examples where this is used.
+Provide 2-3 specific, named examples from real companies, projects, or scenarios (e.g., "Netflix uses this for...", "In mobile app development, this solves..."). Make these concrete and credible, not vague generalizations.
 
 BEST PRACTICES:
-What should students do to apply this well?
+Share 3-4 actionable practices that practitioners actually use. Include the "why" behind each practice. These should feel like insider knowledge from someone with experience.
 
 COMMON MISTAKES:
-What mistakes should students avoid?
+Identify 2-3 specific mistakes beginners make, explain WHY they happen, and how to avoid them. Make these feel like lessons learned from real experience.
 
 KEY TAKEAWAYS:
-Summarize the main points.
+Distill the module into 3-5 memorable points. These should be specific and actionable, not generic platitudes.
 
-Write naturally - as if explaining to a student. Keep it clear and educational.`;
+Write as if mentoring someone in person - engaging, insightful, and genuinely helpful.`;
 
             let moduleContent = '';
             let retryCount = 0;
@@ -166,12 +176,16 @@ Write naturally - as if explaining to a student. Keep it clear and educational.`
 
             while (retryCount < maxRetries) {
                 try {
+                    // Create abort controller for 30-second timeout
+                    const controller = new AbortController();
+                    const timeout = setTimeout(() => controller.abort(), 30000);
+
                     const moduleCompletion = await groq.chat.completions.create({
                         model: 'llama-3.3-70b-versatile',
                         messages: [
                             {
                                 role: 'system',
-                                content: 'You are a helpful teacher creating course content for students. Write clear, educational content. Do not output JSON or markdown code blocks.'
+                                content: `You are an expert educator with deep subject matter expertise. Write naturally as a human expert would - avoid robotic patterns, AI clichés (like "delve into", "dive deep", "it's worth noting"), and formulaic language. Use varied vocabulary, engaging storytelling, and specific concrete examples. Your writing should feel conversational yet professional, with smooth transitions between ideas. Make every course unique with fresh perspectives and memorable insights. Write clear, educational content. Do not output JSON or markdown code blocks.`
                             },
                             { role: 'user', content: moduleContentPrompt },
                         ],
@@ -180,6 +194,7 @@ Write naturally - as if explaining to a student. Keep it clear and educational.`
                     });
 
                     moduleContent = moduleCompletion.choices[0]?.message?.content || '';
+                    clearTimeout(timeout);  // Clear timeout on success
 
                     // Basic validation - ensure we got some content
                     if (moduleContent.length < 500) {
@@ -239,12 +254,16 @@ OUTPUT ONLY THE JSON OBJECT.`;
 
             while (retryCount < maxRetries && !moduleJson) {
                 try {
+                    // Create abort controller for 30-second timeout
+                    const controller = new AbortController();
+                    const timeout = setTimeout(() => controller.abort(), 30000);
+
                     const jsonCompletion = await groq.chat.completions.create({
                         model: 'llama-3.3-70b-versatile',
                         messages: [
                             {
                                 role: 'system',
-                                content: 'Output ONLY valid JSON. No markdown, no explanations.'
+                                content: 'Convert to ONLY valid JSON. Preserve ALL content quality - keep the natural language, specific examples, and engaging tone intact. No markdown, no explanations.'
                             },
                             { role: 'user', content: moduleJsonPrompt },
                         ],
@@ -253,6 +272,7 @@ OUTPUT ONLY THE JSON OBJECT.`;
                     });
 
                     const response = jsonCompletion.choices[0]?.message?.content;
+                    clearTimeout(timeout);  // Clear timeout on success
 
                     if (!response || !response.trim().endsWith('}')) {
                         throw new Error('JSON truncated');

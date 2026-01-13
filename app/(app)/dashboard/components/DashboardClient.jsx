@@ -155,7 +155,7 @@ export default function DashboardClient({ analytics, userFirstName }) {
                                                 <p className="text-xs sm:text-sm" style={{ color: 'var(--text-secondary)' }}>
                                                     No courses yet. Create your first course to see category breakdown.
                                                 </p>
-                                                <Link href="/create-course">
+                                                <Link href="/create/ai">
                                                     <button className="mt-4 px-4 py-2 rounded-lg text-sm font-medium text-white" style={{ background: 'var(--accent-purple)' }}>
                                                         Create Course
                                                     </button>
@@ -254,7 +254,7 @@ export default function DashboardClient({ analytics, userFirstName }) {
                                 <p className="text-sm sm:text-base text-white font-medium max-w-lg pr-6">
                                     Create AI-powered courses in seconds! Transform your ideas into professional learning experiences.
                                 </p>
-                                <Link href="/create-course" className="w-full sm:w-auto">
+                                <Link href="/create/ai" className="w-full sm:w-auto">
                                     <button
                                         className="w-full sm:w-auto px-4 sm:px-6 py-2 rounded-xl font-medium transition-colors text-sm sm:text-base"
                                         style={{ background: 'var(--card)', color: 'white' }}
