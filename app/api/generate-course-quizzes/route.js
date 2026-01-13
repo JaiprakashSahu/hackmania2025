@@ -28,8 +28,8 @@ export async function POST(request) {
       .orderBy(chapters.orderIndex);
 
     if (!courseChapters || courseChapters.length === 0) {
-      return NextResponse.json({ 
-        error: 'No chapters found for this course' 
+      return NextResponse.json({
+        error: 'No chapters found for this course'
       }, { status: 404 });
     }
 
@@ -37,20 +37,20 @@ export async function POST(request) {
 
     // Generate quizzes for each chapter
     const quizGenerationResults = [];
-    
+
     for (const chapter of courseChapters) {
       try {
         console.log(`Generating quiz for chapter: ${chapter.title}`);
-        
+
         // Call the quiz generation API for each chapter
-        const quizResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/generate-quiz`, {
+        const quizResponse = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000'}/api/generate-quiz`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ chapterId: chapter.id }),
         });
 
         const quizResult = await quizResponse.json();
-        
+
         if (quizResponse.ok) {
           quizGenerationResults.push({
             chapterId: chapter.id,
