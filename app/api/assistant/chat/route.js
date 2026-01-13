@@ -2,9 +2,13 @@ import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import Groq from 'groq-sdk';
 
-const groq = new Groq({
-    apiKey: process.env.GROQ_API_KEY,
-});
+// Lazy-load GROQ client to avoid build-time initialization
+function getGroqClient() {
+    if (!process.env.GROQ_API_KEY) {
+        throw new Error('GROQ_API_KEY is not configured');
+    }
+    return new Groq({ apiKey: process.env.GROQ_API_KEY });
+}
 
 export async function POST(request) {
     try {
@@ -20,6 +24,7 @@ export async function POST(request) {
             return NextResponse.json({ error: 'Invalid messages format' }, { status: 400 });
         }
 
+        const groq = getGroqClient();
         const completion = await groq.chat.completions.create({
             model: 'llama-3.3-70b-versatile',
             messages: [
