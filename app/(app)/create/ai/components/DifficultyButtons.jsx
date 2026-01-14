@@ -10,7 +10,7 @@ export default function DifficultyButtons({ value, onChange }) {
     ];
 
     return (
-        <div role="radiogroup" aria-label="Course difficulty" className="flex gap-3">
+        <div role="radiogroup" aria-label="Course difficulty" className="flex flex-wrap sm:flex-nowrap gap-2 sm:gap-3">
             {levels.map((level) => {
                 const selected = value === level.id;
                 return (
@@ -20,9 +20,9 @@ export default function DifficultyButtons({ value, onChange }) {
                         role="radio"
                         aria-checked={selected}
                         tabIndex={0}
-                        className={`flex-1 py-3.5 px-4 rounded-xl text-sm font-medium transition-all focus:outline-none ${selected
+                        className={`flex-1 min-w-[calc(50%-0.25rem)] sm:min-w-0 py-3 sm:py-3.5 px-3 sm:px-4 rounded-xl text-xs sm:text-sm font-medium transition-all focus:outline-none ${selected
                             ? 'bg-[#14151C] border border-[#9B6BFF]/40 text-white'
-                            : 'bg-[#14151C] border border-white/10 text-white/70 hover:border-white/20 hover:text-white'
+                            : 'bg-[#14151C] border border-white/10 text-white/70 hover:border-white/20 hover:text-white active:border-white/30'
                             }`}
                         whileTap={{ scale: 0.97 }}
                         whileHover={{ scale: 1.02 }}
@@ -31,7 +31,7 @@ export default function DifficultyButtons({ value, onChange }) {
                         }}
                         transition={{ type: 'spring', stiffness: 400, damping: 25 }}
                     >
-                        <span className="text-lg mr-2">{level.icon}</span>
+                        <span className="text-base sm:text-lg mr-1.5 sm:mr-2">{level.icon}</span>
                         {level.label}
                     </motion.button>
                 );

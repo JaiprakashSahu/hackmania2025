@@ -124,19 +124,19 @@ export default function CreateAIPage() {
             {/* Floating Progress Bar */}
             <ProgressBar active={isGenerating} progress={progress} />
 
-            <div className="max-w-7xl mx-auto px-8 py-10">
+            <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-6 sm:py-8 lg:py-10">
                 {/* Header */}
                 <motion.div
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="flex items-center gap-4 mb-2"
+                    className="flex items-center gap-3 sm:gap-4 mb-2"
                 >
-                    <div className="p-3 rounded-xl bg-[#1C1C29] border border-white/10 shadow-[0_4px_40px_rgba(0,0,0,0.4)]">
-                        <Sparkles className="w-8 h-8 text-[#9B6BFF]" strokeWidth={1.5} />
+                    <div className="p-2.5 sm:p-3 rounded-xl bg-[#1C1C29] border border-white/10 shadow-[0_4px_40px_rgba(0,0,0,0.4)] flex-shrink-0">
+                        <Sparkles className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 text-[#9B6BFF]" strokeWidth={1.5} />
                     </div>
-                    <div>
-                        <h1 className="text-3xl font-semibold text-white">AI Course Generator</h1>
-                        <p className="text-white/50 text-sm mt-1">
+                    <div className="min-w-0">
+                        <h1 className="text-xl sm:text-2xl lg:text-3xl font-semibold text-white">AI Course Generator</h1>
+                        <p className="text-white/50 text-xs sm:text-sm mt-0.5 sm:mt-1">
                             Create a full structured course from any topic using AI
                         </p>
                     </div>
@@ -160,36 +160,36 @@ export default function CreateAIPage() {
                     </motion.div>
                 )}
 
-                <div className="mt-8 grid grid-cols-1 xl:grid-cols-2 gap-8">
+                <div className="mt-6 sm:mt-8 grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
                     {/* LEFT: Course Settings Card */}
                     <motion.div
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.1 }}
-                        className="bg-[#1C1C29] border border-white/10 rounded-2xl shadow-[0_4px_40px_rgba(0,0,0,0.4)] p-8"
+                        className="bg-[#1C1C29] border border-white/10 rounded-2xl shadow-[0_4px_40px_rgba(0,0,0,0.4)] p-5 sm:p-6 lg:p-8"
                     >
-                        <h2 className="text-xl font-semibold text-white mb-8 flex items-center gap-2">
+                        <h2 className="text-lg sm:text-xl font-semibold text-white mb-6 sm:mb-8 flex items-center gap-2">
                             <span className="w-2 h-2 rounded-full bg-[#9B6BFF]"></span>
                             Course Settings
                         </h2>
 
                         {/* Topic Input */}
-                        <div className="mb-8">
-                            <label className="text-white/70 text-sm font-medium">Topic</label>
+                        <div className="mb-6 sm:mb-8">
+                            <label className="text-white/70 text-xs sm:text-sm font-medium">Topic</label>
                             <input
                                 type="text"
                                 value={topic}
                                 onChange={(e) => setTopic(e.target.value)}
-                                placeholder="e.g. Machine Learning, JavaScript, Photography"
+                                placeholder="e.g. Machine Learning, JavaScript"
                                 disabled={isGenerating}
-                                className="w-full mt-3 bg-[#14151C] border border-white/10 rounded-xl px-4 py-4 text-white placeholder-white/30 focus:outline-none focus:border-[#9B6BFF] transition-colors disabled:opacity-50"
+                                className="w-full mt-2.5 sm:mt-3 bg-[#14151C] border border-white/10 rounded-xl px-3.5 sm:px-4 py-3 sm:py-4 text-sm sm:text-base text-white placeholder-white/30 focus:outline-none focus:border-[#9B6BFF] transition-colors disabled:opacity-50"
                             />
                         </div>
 
                         {/* Difficulty Selection */}
-                        <div className="mb-8">
-                            <label className="text-white/70 text-sm font-medium">Difficulty Level</label>
-                            <div className="mt-3">
+                        <div className="mb-6 sm:mb-8">
+                            <label className="text-white/70 text-xs sm:text-sm font-medium">Difficulty Level</label>
+                            <div className="mt-2.5 sm:mt-3">
                                 <DifficultyButtons
                                     value={difficulty}
                                     onChange={setDifficulty}
@@ -198,8 +198,8 @@ export default function CreateAIPage() {
                         </div>
 
                         {/* Modules Slider */}
-                        <div className="mb-8">
-                            <label className="text-white/70 text-sm font-medium">Number of Modules</label>
+                        <div className="mb-6 sm:mb-8">
+                            <label className="text-white/70 text-xs sm:text-sm font-medium">Number of Modules</label>
                             <ModuleCountInput
                                 min={3}
                                 max={7}
@@ -209,13 +209,13 @@ export default function CreateAIPage() {
                         </div>
 
                         {/* Toggles Section */}
-                        <div className="space-y-4 mb-8">
-                            <p className="text-white/70 text-sm font-medium">Additional Options</p>
+                        <div className="space-y-3 sm:space-y-4 mb-6 sm:mb-8">
+                            <p className="text-white/70 text-xs sm:text-sm font-medium">Additional Options</p>
 
                             <ToggleWithTooltip
                                 label="Include YouTube Videos"
                                 hint="Add curated video recommendations per module"
-                                icon={<Video className="w-5 h-5 text-red-400" />}
+                                icon={<Video className="w-4 h-4 sm:w-5 sm:h-5 text-red-400" />}
                                 checked={includeVideos}
                                 onChange={setIncludeVideos}
                             />
@@ -223,7 +223,7 @@ export default function CreateAIPage() {
                             <ToggleWithTooltip
                                 label="Include Quizzes"
                                 hint="Generate quiz questions for each module"
-                                icon={<HelpCircle className="w-5 h-5 text-green-400" />}
+                                icon={<HelpCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-400" />}
                                 checked={includeQuiz}
                                 onChange={setIncludeQuiz}
                             />
@@ -258,9 +258,9 @@ export default function CreateAIPage() {
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.2 }}
-                        className="bg-[#14151C] border border-white/10 rounded-2xl shadow-[0_4px_40px_rgba(0,0,0,0.4)] p-8"
+                        className="bg-[#14151C] border border-white/10 rounded-2xl shadow-[0_4px_40px_rgba(0,0,0,0.4)] p-5 sm:p-6 lg:p-8"
                     >
-                        <h2 className="text-xl font-semibold text-white mb-6 flex items-center gap-2">
+                        <h2 className="text-lg sm:text-xl font-semibold text-white mb-5 sm:mb-6 flex items-center gap-2">
                             <span className="w-2 h-2 rounded-full bg-[#57D1FF]"></span>
                             Course Preview
                         </h2>
